@@ -4,6 +4,7 @@
 import argparse
 import boto3
 
+#################################
 # Get list of instances in region
 def GetInstances():
     ec2 = session.resource('ec2')
@@ -14,11 +15,12 @@ def GetInstances():
 
     return instlist
 
+
+#############################
 # Get Instance's key EBS info
 def GetEBSattribs(EBSstruct):
-    EBSct = len(EBSstruct)
-
     EBSdict = {}
+
     for EBS in EBSstruct:
         EBSattach = EBS['DeviceName']
         EBSstruct = EBS['Ebs']
@@ -28,6 +30,24 @@ def GetEBSattribs(EBSstruct):
 
     return EBSdict
 
+
+###################
+# Client Attributes
+def GetUserData(InstId):
+    response = client.describe_instance_attribute(
+        InstanceId = InstId,
+        Attribute = 'userData'
+    )
+
+    UserData = response['UserData']
+
+    if UserData:
+        return UserData['Value']
+    else:
+        return 'None'
+
+
+############################
 # Commandline option-handler
 parseit = argparse.ArgumentParser()
 
@@ -57,9 +77,18 @@ resources = boto3.resource(
     aws_access_key_id = args.key,
     aws_secret_access_key = args.secret
 )
+
+client = boto3.client(
+    'ec2',
+    region_name = args.region,
+    aws_access_key_id = args.key,
+    aws_secret_access_key = args.secret
+)
     
+# Extract config-info from instances
 Instances = GetInstances()
 for InstId in Instances:
+    # Resource Attributes
     InstInfo = resources.Instance(InstId)
     InstKey = InstInfo.key_name
     InstIAM = InstInfo.iam_instance_profile
@@ -69,12 +98,16 @@ for InstId in Instances:
     InstPrivIP = InstInfo.private_ip_address
     InstPubDNS = InstInfo.public_dns_name
     InstPubIP = InstInfo.public_ip_address
-    InstRootDevName = InstInfo.root_device_name
-    InstRootDevType = InstInfo.root_device_type
     InstSGlist = InstInfo.security_groups
     InstSubnet = InstInfo.subnet_id
     InstVPC = InstInfo.vpc_id
+    InstRootDevName = InstInfo.root_device_name
+    InstRootDevType = InstInfo.root_device_type
     InstBlkDevs = GetEBSattribs(InstInfo.block_device_mappings)
-
-    print InstBlkDevs
+    InstAMI = InstInfo.image_id
+    InstUserData = GetUserData(InstId)
+    
+    print InstUserData
     print '=========='
+
+
