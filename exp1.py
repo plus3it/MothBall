@@ -14,9 +14,19 @@ def GetInstances():
 
     return instlist
 
-# Get key instance-attributes
-def GetInstanceAttribs():
-    return
+# Get Instance's key EBS info
+def GetEBSattribs(EBSstruct):
+    EBSct = len(EBSstruct)
+
+    EBSdict = {}
+    for EBS in EBSstruct:
+        EBSattach = EBS['DeviceName']
+        EBSstruct = EBS['Ebs']
+        EBSvol = EBSstruct['VolumeId']
+
+        EBSdict[EBSvol] = EBSattach
+
+    return EBSdict
 
 # Commandline option-handler
 parseit = argparse.ArgumentParser()
@@ -64,7 +74,7 @@ for InstId in Instances:
     InstSGlist = InstInfo.security_groups
     InstSubnet = InstInfo.subnet_id
     InstVPC = InstInfo.vpc_id
-    InstBlkDevs = InstInfo.block_device_mappings
+    InstBlkDevs = GetEBSattribs(InstInfo.block_device_mappings)
 
-    print InstInfo
+    print InstBlkDevs
     print '=========='
