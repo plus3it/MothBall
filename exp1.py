@@ -3,6 +3,7 @@
 #################################################################
 import argparse
 import boto3
+from MyDBconnect import DbConnect, DbCnctInfo
 
 #################################
 # Get list of instances in region
