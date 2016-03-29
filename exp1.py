@@ -85,7 +85,11 @@ client = boto3.client(
     aws_access_key_id = args.key,
     aws_secret_access_key = args.secret
 )
-    
+
+# MySQL insertion-point
+dbconn = DbConnect(DbCnctInfo('testclt'))
+InsertAt = dbconn.cursor()    
+
 # Extract config-info from instances
 Instances = GetInstances()
 for InstId in Instances:
@@ -107,8 +111,70 @@ for InstId in Instances:
     InstBlkDevs = GetEBSattribs(InstInfo.block_device_mappings)
     InstAMI = InstInfo.image_id
     InstUserData = GetUserData(InstId)
-    
+
+    add_record = ("insert into Instance_Info ("
+                      "InstanceId,"
+                      "InstanceKey,"
+                      "InstanceRole,"
+                      "InstanceType,"
+                      "InstanceAZ,"
+                      "InstancePrivDNS,"
+                      "InstancePrivIP,"
+                      "InstancePubDNS,"
+                      "InstancePubIP,"
+                      "InstanceSGlist,"
+                      "InstanceSubNet,"
+                      "InstanceVPC,"
+                      "InstanceRootDevName,"
+                      "InstanceRootDevType,"
+                      "InstanceBlockDevs,"
+                      "InstanceAMI,"
+                      "InstanceUserData"
+                  ") values ("
+                      "%(InstId)s,"
+                      "%(InstKey)s,"
+                      "%(InstIAM)s,"
+                      "%(InstType)s,"
+                      "%(InstAZ)s,"
+                      "%(InstPrivDNS)s,"
+                      "%(InstPrivIP)s,"
+                      "%(InstPubDNS)s,"
+                      "%(InstPubIP)s,"
+                      "%(InstSGlist)s,"
+                      "%(InstSubnet)s,"
+                      "%(InstVPC)s,"
+                      "%(InstRootDevName)s,"
+                      "%(InstRootDevType)s,"
+                      "%(InstBlkDevs)s,"
+                      "%(InstAMI)s,"
+                      "%(InstUserData)s,"
+                  ")"
+                  );
+
+    add_data = {
+            'InstId' : InstId,
+            'InstKey' : InstKey,
+            'InstIAM' : InstIAM,
+            'InstType' : InstType,
+            'InstAZ' : InstAZ,
+            'InstPrivDNS' : InstPrivDNS,
+            'InstPrivIP' : InstPrivIP,
+            'InstPubDNS' : InstPubDNS,
+            'InstPubIP' : InstPubIP,
+            'InstSGlist' : InstSGlist,
+            'InstSubnet' : InstSubnet,
+            'InstVPC' : InstVPC,
+            'InstRootDevName' : InstRootDevName,
+            'InstRootDevType' : InstRootDevType,
+            'InstBlkDevs' : InstBlkDevs,
+            'InstAMI' : InstAMI,
+            'InstUserData' : InstUserData,
+        }
+                 
     print InstUserData
+    InsertAt.execute(add_record, add_data)
+    InsertAt.commit()
     print '=========='
 
-
+InsertAt.close()
+dbconn.close()
