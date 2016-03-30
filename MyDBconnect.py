@@ -44,10 +44,3 @@ def DbConnect(conn_dict):
     else:
         print "Successful connect"
         return mconn
-    
-
-#########
-# Main...
-#########
-dbconn = DbConnect(DbCnctInfo('testclt'))
-    
