@@ -7,8 +7,14 @@ from MyDBconnect import DbConnect, DbCnctInfo
 
 #################################
 # Get list of instances in region
-def GetInstances():
-    ec2 = session.resource('ec2')
+def GetInstances(args):
+
+    ec2 = session.resource(
+        'ec2',
+        region_name = args.region,
+        aws_access_key_id = args.key,
+        aws_secret_access_key = args.secret
+    )
 
     instlist = []
     for ret in ec2.instances.all():
@@ -91,7 +97,8 @@ dbconn = DbConnect(DbCnctInfo('testclt'))
 InsertAt = dbconn.cursor()    
 
 # Extract config-info from instances
-Instances = GetInstances()
+Instances = GetInstances(args)
+
 for InstId in Instances:
     # Resource Attributes
     InstInfo = resources.Instance(InstId)
@@ -111,6 +118,8 @@ for InstId in Instances:
     InstBlkDevs = GetEBSattribs(InstInfo.block_device_mappings)
     InstAMI = InstInfo.image_id
     InstUserData = GetUserData(InstId)
+
+    print InstId
 
     add_record = ("insert into Instance_Info ("
                       "InstanceId,"
@@ -171,10 +180,9 @@ for InstId in Instances:
             'InstUserData' : InstUserData,
         }
                  
-    print InstUserData
-    InsertAt.execute(add_record, add_data)
-    InsertAt.commit()
+##     InsertAt.execute(add_record, add_data)
+##     InsertAt.commit()
     print '=========='
 
-InsertAt.close()
-dbconn.close()
+## InsertAt.close()
+## dbconn.close()
