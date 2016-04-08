@@ -26,16 +26,16 @@ def GetInstances(args):
 #############################
 # Get Instance's key EBS info
 def GetEBSattribs(EBSstruct):
-    EBSdict = {}
+    EBSlist = []
 
     for EBS in EBSstruct:
         EBSattach = EBS['DeviceName']
         EBSstruct = EBS['Ebs']
         EBSvol = EBSstruct['VolumeId']
 
-        EBSdict[EBSvol] = EBSattach
+        EBSlist.append(EBSvol)
 
-    return EBSdict
+    return EBSlist
 
 
 ###################
@@ -119,8 +119,6 @@ for InstId in Instances:
     InstAMI = InstInfo.image_id
     InstUserData = GetUserData(InstId)
 
-    print InstId
-
     add_record = ("insert into Instance_Info ("
                       "InstanceId,"
                       "InstanceKey,"
@@ -179,10 +177,26 @@ for InstId in Instances:
             'InstAMI' : InstAMI,
             'InstUserData' : InstUserData,
         }
+##  print add_data['InstId']
+##  print add_data['InstKey']
+##  print add_data['InstIAM']
+##  print add_data['InstType']
+##  print add_data['InstAZ']
+##  print add_data['InstPrivDNS']
+##  print add_data['InstPrivIP']
+##  print add_data['InstPubDNS']
+##  print add_data['InstPubIP']
+##  print add_data['InstSubnet']
+##  print add_data['InstVPC']
+##  print add_data['InstRootDevName']
+##  print add_data['InstRootDevType']
+##  print add_data['InstAMI']
+##  print add_data['InstUserData']
+    print add_data['InstBlkDevs']
                  
-##     InsertAt.execute(add_record, add_data)
+    ## InsertAt.execute(add_record, add_data)
 ##     InsertAt.commit()
-    print '=========='
+##  print '=========='
 
 ## InsertAt.close()
 ## dbconn.close()
