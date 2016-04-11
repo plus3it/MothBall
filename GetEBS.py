@@ -24,15 +24,25 @@ def GetInstances(args):
 
     return instlist
 
+###########################
 # Get EBS vols for instance
 def GetEBSvolInfo(instid):
 
     ec2 = session.resource('ec2')
     inst = ec2.Instance(id=instid)
     devstruct = inst.block_device_mappings
+
+    devmap = {}
     for dev in devstruct:
-        devmount = dev['DeviceName']
         devvolid = dev['Ebs']['VolumeId']
+        ebs = {}
+        ebs['Mount'] = dev['DeviceName']
+        ebs['Size'] = ec2.Volume(devvolid).size
+        ebs['Type'] = ec2.Volume(devvolid).volume_type
+        ebs['IOPS'] = ec2.Volume(devvolid).iops
+        devmap[devvolid] = ebs
+
+    return devmap
 
 
 ############################
@@ -61,4 +71,5 @@ session = boto3.Session(
 
 # Create list of in-region instances to stop
 for inst in GetInstances(args):
-    GetEBSvolInfo(inst)
+    instVols = GetEBSvolInfo(inst)
+    print instVols
