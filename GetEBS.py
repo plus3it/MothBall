@@ -60,7 +60,7 @@ def GetEBSvolInfo(instid):
 
 #################################
 # Insert EBS volume-info into SQL
-def ebsMysql(ebsVol):
+def ebsMysql(insertData):
     insert_struct = (
         "INSERT INTO Volume "
 	"("
@@ -97,6 +97,12 @@ def ebsMysql(ebsVol):
 	") "
     )
 
+    instance = insertData.keys()[0]
+    for volume in insertData[instance]:
+        print volume
+    
+    print insertData
+
 
 ############################
 # Commandline option-handler
@@ -123,4 +129,5 @@ session = boto3.Session(
 # Create list of in-region instances to stop
 for inst in GetInstances(args):
     instVols = GetEBSvolInfo(inst)
-    print instVols
+    # print instVols
+    ebsMysql(instVols)
