@@ -2,9 +2,7 @@
 #
 #################################################################
 
-import argparse
-import boto3
-from MyDBconnect import DbConnect, DbCnctInfo
+from MothDBconnect import DbConnect, DbCnctInfo
 
 dbconn = DbConnect(DbCnctInfo('testclt'))
 
