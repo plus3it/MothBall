@@ -6,6 +6,19 @@
 #################################################################
 import argparse
 import boto3
+import subprocess
+
+###################################################################
+# Get list of regions in service
+#    Need this for bounds-checking, but it's a Chicken/Egg problem:
+#    need AWS CLI config with default-region set
+def ValidRegion():
+    regraw = subprocess.Popen(
+            "aws ec2 describe-regions --query 'Regions[].RegionName[]' --out text",
+            shell=True,
+            stdout=subprocess.PIPE).stdout.read()
+
+    return regraw.split( )
 
 #################################
 # Get list of instances in region
@@ -50,9 +63,7 @@ def GetEBSvolInfo(instid):
 parseit = argparse.ArgumentParser()
 
 parseit.add_argument("-r", "--region",
-                     choices = ['us-east-1',
-                                'us-west-1',
-                                'us-west-2'],
+                     choices = ValidRegion(),
                      help="AWS Region",
                      required=True)
 parseit.add_argument("-k", "--key",
