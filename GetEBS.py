@@ -66,6 +66,8 @@ def ebsMysql(insertData):
     # dbconn = DbConnect(DbCnctInfo('testclt'))
     # cursor = dbconn.cursor()
 
+    # Define INSERT-string to pass to MySQL
+    # and associated value-mapping 
     insert_struct = (
         "INSERT INTO Volume "
 	"("
@@ -84,22 +86,23 @@ def ebsMysql(insertData):
           "volumeType"
 	") "
 	"VALUES ("
-	  "'%(AccountId)s', "
-          "'%(instanceId)s', "
-          "'%(attachmentSet)s', "
-          "'%(availabilityZone)s', "
-          "'%(encrypted)s', "
-          "'%(iops)s', "
-          "'%(kmsKeyId)s', "
-          "'%(size)s', "
-          "'%(snapshotId)s', "
-          "'%(status)s', "
-          "'%(tagSet)s', "
-          "'%(volumeId)s', "
-          "'%(volumeType)s'"
+	  "%(AccountId)s, "
+          "%(instanceId)s, "
+          "%(attachmentSet)s, "
+          "%(availabilityZone)s, "
+          "%(encrypted)s, "
+          "%(iops)s, "
+          "%(kmsKeyId)s, "
+          "%(size)s, "
+          "%(snapshotId)s, "
+          "%(status)s, "
+          "%(tagSet)s, "
+          "%(volumeId)s, "
+          "%(volumeType)s"
 	"); "
     )
 
+    # Extract values from passed-EBS structure
     instance = insertData.keys()[0]
     for volume in insertData[instance]:
         volMount = insertData[instance][volume]['Mount']
@@ -109,6 +112,7 @@ def ebsMysql(insertData):
         volType = insertData[instance][volume]['Type']
         volSize = insertData[instance][volume]['Size']
 
+        # Define mappings to SQL-managed values
         insert_data = {
 	        'AccountId'		: 'TEST',
                 'instanceId'		: instance,
@@ -126,22 +130,10 @@ def ebsMysql(insertData):
                 'volumeType'		: volType
 	    }
 
-        print (insert_struct % insert_data)
-        # cursor.execute(insert_struct, insert_data)
-        # dbconn.commit()
-        # cursor.close()
-
-# dbconn.close()
-
-
-
-    # print("%s\t%s\t%s\t%s\t%s\t%s" % (instance, volume, volMount, volSize, volType, volIops))
-    # Above extraction-loop yields:
-    #   instanceId	volumeId	attachmentSet	size	volumeType	iops
-    #   i-7f30e7ca      vol-2b1d7896    /dev/sda1       8       gp2     	24
-    #   i-7f30e7ca      vol-0594d0b8    /dev/sdf        1       gp2     	3
-    #   i-7f30e7ca      vol-1694d0ab    /dev/sdg        1       gp2     	3
-    #   i-51077091      vol-3e86d5db    /dev/sda1       20      standard        None
+        # Insert row into Volume table
+        print('Writing volume \'%s\' for instance \'%s\' to Volume table' % (volume, instance))
+        cursor.execute(insert_struct, insert_data)
+        dbconn.commit()
 
 
 ############################
@@ -159,15 +151,24 @@ parseit.add_argument("-s", "--secret",
 
 args = parseit.parse_args()
 
-# Initialize session/connection
+# Initialize session/connection to AWS
 session = boto3.Session(
     region_name = args.region,
     aws_access_key_id = args.key,
     aws_secret_access_key = args.secret
 )
 
+# Initialize connection to MySQL
+dbconn = DbConnect(DbCnctInfo('testclt'))
+cursor = dbconn.cursor()
+
 # Create list of in-region instances to stop
 for inst in GetInstances(args):
     instVols = GetEBSvolInfo(inst)
     # print instVols
     ebsMysql(instVols)
+
+
+# Clean up connection to MySQL
+cursor.close()
+dbconn.close()
