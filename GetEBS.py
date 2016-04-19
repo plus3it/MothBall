@@ -73,7 +73,6 @@ def ebsMysql(insertData):
           "instanceId, "
           "attachmentSet, "
           "availabilityZone, "
-          "createTime, "
           "encrypted, "
           "iops, "
           "kmsKeyId, "
@@ -89,7 +88,6 @@ def ebsMysql(insertData):
           "'%(instanceId)s', "
           "'%(attachmentSet)s', "
           "'%(availabilityZone)s', "
-          "'%(createTime)s', "
           "'%(encrypted)s', "
           "'%(iops)s', "
           "'%(kmsKeyId)s', "
@@ -102,11 +100,12 @@ def ebsMysql(insertData):
 	"); "
     )
 
-    # {'Mount': '/dev/sda1', 'IOPS': 24, 'Type': 'gp2', 'Size': 8}
     instance = insertData.keys()[0]
     for volume in insertData[instance]:
         volMount = insertData[instance][volume]['Mount']
         volIops = insertData[instance][volume]['IOPS']
+        if volIops is None:
+            volIops = 0
         volType = insertData[instance][volume]['Type']
         volSize = insertData[instance][volume]['Size']
 
@@ -116,13 +115,13 @@ def ebsMysql(insertData):
                 'attachmentSet'		: volMount,
                 'availabilityZone'	: 'TEST',
                 'createTime'		: '',
-                'encrypted'		: '',
+                'encrypted'		: '0',
                 'iops'			: volIops,
                 'kmsKeyId'		: '',
                 'size'			: volSize,
                 'snapshotId'		: '',
                 'status'		: '',
-                'tagSet'		: '',
+                'tagSet'		: '["NO DATA"]',
                 'volumeId'		: volume,
                 'volumeType'		: volType
 	    }
