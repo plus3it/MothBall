@@ -93,7 +93,7 @@ def ebsMysql(insertData):
           "%(status)s, "
           "%(tagSet)s, "
           "%(volumeId)s, "
-          "%(volumeType"
+          "%(volumeType)s"
 	") "
     )
 
@@ -104,9 +104,34 @@ def ebsMysql(insertData):
         volIops = insertData[instance][volume]['IOPS']
         volType = insertData[instance][volume]['Type']
         volSize = insertData[instance][volume]['Size']
-        print("%s %s %s %s %s %s" % (instance, volume, volMount, volSize, volType, volIops))
-        # print instance
-        # print volume
+
+        insert_data = {
+	        'AccountId'		: 'TEST',
+                'instanceId'		: instance,
+                'attachmentSet'		: volMount,
+                'availabilityZone'	: 'TEST',
+                'createTime'		: '',
+                'encrypted'		: '',
+                'iops'			: volIops,
+                'kmsKeyId'		: '',
+                'size'			: volSize,
+                'snapshotId'		: '',
+                'status'		: '',
+                'tagSet'		: '',
+                'volumeId'		: volume,
+                'volumeType'		: volType
+	    }
+        print insert_data
+
+
+
+    # print("%s\t%s\t%s\t%s\t%s\t%s" % (instance, volume, volMount, volSize, volType, volIops))
+    # Above extraction-loop yields:
+    #   instanceId	volumeId	attachmentSet	size	volumeType	iops
+    #   i-7f30e7ca      vol-2b1d7896    /dev/sda1       8       gp2     	24
+    #   i-7f30e7ca      vol-0594d0b8    /dev/sdf        1       gp2     	3
+    #   i-7f30e7ca      vol-1694d0ab    /dev/sdg        1       gp2     	3
+    #   i-51077091      vol-3e86d5db    /dev/sda1       20      standard        None
 
 
 ############################
