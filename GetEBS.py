@@ -58,6 +58,46 @@ def GetEBSvolInfo(instid):
     return devmap
 
 
+#################################
+# Insert EBS volume-info into SQL
+def ebsMysql(ebsVol):
+    insert_struct = (
+        "INSERT INTO Volume "
+	"("
+	  "AccountId, "
+          "instanceId, "
+          "attachmentSet, "
+          "availabilityZone, "
+          "createTime, "
+          "encrypted, "
+          "iops, "
+          "kmsKeyId, "
+          "size, "
+          "snapshotId, "
+          "status, "
+          "tagSet, "
+          "volumeId, "
+          "volumeType"
+	") "
+	"VALUES ("
+	  "%(AccountId)s, "
+          "%(instanceId)s, "
+          "%(attachmentSet)s, "
+          "%(availabilityZone)s, "
+          "%(createTime)s, "
+          "%(encrypted)s, "
+          "%(iops)s, "
+          "%(kmsKeyId)s, "
+          "%(size)s, "
+          "%(snapshotId)s, "
+          "%(status)s, "
+          "%(tagSet)s, "
+          "%(volumeId)s, "
+          "%(volumeType"
+	") "
+    )
+
+
 ############################
 # Commandline option-handler
 parseit = argparse.ArgumentParser()
