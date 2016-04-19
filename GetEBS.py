@@ -7,6 +7,8 @@
 import argparse
 import boto3
 import subprocess
+from MothDBconnect import DbConnect, DbCnctInfo
+
 
 ###################################################################
 # Get list of regions in service
@@ -61,6 +63,9 @@ def GetEBSvolInfo(instid):
 #################################
 # Insert EBS volume-info into SQL
 def ebsMysql(insertData):
+    # dbconn = DbConnect(DbCnctInfo('testclt'))
+    # cursor = dbconn.cursor()
+
     insert_struct = (
         "INSERT INTO Volume "
 	"("
@@ -80,21 +85,21 @@ def ebsMysql(insertData):
           "volumeType"
 	") "
 	"VALUES ("
-	  "%(AccountId)s, "
-          "%(instanceId)s, "
-          "%(attachmentSet)s, "
-          "%(availabilityZone)s, "
-          "%(createTime)s, "
-          "%(encrypted)s, "
-          "%(iops)s, "
-          "%(kmsKeyId)s, "
-          "%(size)s, "
-          "%(snapshotId)s, "
-          "%(status)s, "
-          "%(tagSet)s, "
-          "%(volumeId)s, "
-          "%(volumeType)s"
-	") "
+	  "'%(AccountId)s', "
+          "'%(instanceId)s', "
+          "'%(attachmentSet)s', "
+          "'%(availabilityZone)s', "
+          "'%(createTime)s', "
+          "'%(encrypted)s', "
+          "'%(iops)s', "
+          "'%(kmsKeyId)s', "
+          "'%(size)s', "
+          "'%(snapshotId)s', "
+          "'%(status)s', "
+          "'%(tagSet)s', "
+          "'%(volumeId)s', "
+          "'%(volumeType)s'"
+	"); "
     )
 
     # {'Mount': '/dev/sda1', 'IOPS': 24, 'Type': 'gp2', 'Size': 8}
@@ -121,7 +126,13 @@ def ebsMysql(insertData):
                 'volumeId'		: volume,
                 'volumeType'		: volType
 	    }
-        print insert_data
+
+        print (insert_struct % insert_data)
+        # cursor.execute(insert_struct, insert_data)
+        # dbconn.commit()
+        # cursor.close()
+
+# dbconn.close()
 
 
 
