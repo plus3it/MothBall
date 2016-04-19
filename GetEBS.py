@@ -55,7 +55,7 @@ def GetEBSvolInfo(instid):
         ebs['IOPS'] = ec2.Volume(devvolid).iops
         devmap[devvolid] = ebs
 
-    return devmap
+    return { instid : devmap }
 
 
 #################################
