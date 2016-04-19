@@ -97,11 +97,16 @@ def ebsMysql(insertData):
 	") "
     )
 
+    # {'Mount': '/dev/sda1', 'IOPS': 24, 'Type': 'gp2', 'Size': 8}
     instance = insertData.keys()[0]
     for volume in insertData[instance]:
-        print volume
-    
-    print insertData
+        volMount = insertData[instance][volume]['Mount']
+        volIops = insertData[instance][volume]['IOPS']
+        volType = insertData[instance][volume]['Type']
+        volSize = insertData[instance][volume]['Size']
+        print("%s %s %s %s %s %s" % (instance, volume, volMount, volSize, volType, volIops))
+        # print instance
+        # print volume
 
 
 ############################
