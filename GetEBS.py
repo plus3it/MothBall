@@ -7,6 +7,7 @@
 #################################################################
 import argparse
 import boto3
+import json
 import subprocess
 from MothDBconnect import DbConnect, DbCnctInfo
 
@@ -57,7 +58,7 @@ def GetEBSvolInfo(instid):
         ebs['Type'] = ec2.Volume(devvolid).volume_type
         ebs['IOPS'] = ec2.Volume(devvolid).iops
         ebs['AZ'] = ec2.Volume(devvolid).availability_zone
-        ebs['Tags'] = ec2.Volume(devvolid).tags
+        ebs['Tags'] = json.dumps(ec2.Volume(devvolid).tags)
         devmap[devvolid] = ebs
 
     return { instid : devmap }
@@ -130,7 +131,7 @@ def ebsMysql(insertData):
                 'size'			: volSize,
                 'snapshotId'		: '',
                 'status'		: '',
-                'tagSet'		: '["TEST-DATA"]',
+                'tagSet'		: volTags,
                 'volumeId'		: volume,
                 'volumeType'		: volType
 	    }
