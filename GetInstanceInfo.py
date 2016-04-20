@@ -45,81 +45,86 @@ def GetInstances(args):
 def GetInstancInfo(instance):
     ec2 = session.resource('ec2')
     inst = ec2.Instance(id=instance)
-    instLaunchIndex = inst.ami_launch_index
+##     instLaunchIndex = inst.ami_launch_index
     instArchitecture = inst.architecture
     instBlockDevs = inst.block_device_mappings
     instClientToken = inst.client_token
     instEBSoptimized = inst.ebs_optimized
-    instHypervisor = inst.hypervisor
+##     instHypervisor = inst.hypervisor
     instInstanceProfile = inst.iam_instance_profile
     instAMIid = inst.image_id
-    instInstanceId = inst.instance_id
-    instInstanceLifecycle = inst.instance_lifecycle
+##     instInstanceId = inst.instance_id
+##     instInstanceLifecycle = inst.instance_lifecycle
     instInstanceType = inst.instance_type
-    instKernelId = inst.kernel_id
+##     instKernelId = inst.kernel_id
     instKeyName = inst.key_name
-    instLaunchTime = inst.launch_time
+##     instLaunchTime = inst.launch_time
     instMonitoring = inst.monitoring
     instNetIfAttribs = inst.network_interfaces_attribute
-    instPlacement = inst.placement
-    instPlatform = inst.platform
+    instAZ = inst.placement['AvailabilityZone']
+    instTenancy = inst.placement['Tenancy']
+    instPlaceGrp = inst.placement['GroupName']
+##     instPlatform = inst.platform
     instPrivDnsName = inst.private_dns_name
     instPrivIpAddr = inst.private_ip_address
     instProductCodes = inst.product_codes
     instPubDnsName = inst.public_dns_name
     instPubIpAddr = inst.public_ip_address
-    instRamdiskId = inst.ramdisk_id
+##     instRamdiskId = inst.ramdisk_id
     instRootDevName = inst.root_device_name
-    instRootDevType = inst.root_device_type
+##     instRootDevType = inst.root_device_type
     instSecGroups = inst.security_groups
     instSrcDstChk = inst.source_dest_check
     instSpotReqId = inst.spot_instance_request_id
     instSriovSuppt = inst.sriov_net_support
-    instState = inst.state
-    instStateReason = inst.state_reason
-    instStateTransReas = inst.state_transition_reason
+##     instState = inst.state
+##     instStateReason = inst.state_reason
+##     instStateTransReas = inst.state_transition_reason
     instSubnetId = inst.subnet_id
-    instTags = inst.tags
+    instTags = json.dumps(inst.tags)
     instVirtType = inst.virtualization_type
     instVpcId = inst.vpc_id
 
-    print instLaunchIndex
-    print instArchitecture
-    print instBlockDevs
-    print instClientToken
-    print instEBSoptimized
-    print instHypervisor
-    print instInstanceProfile
-    print instAMIid
-    print instInstanceId
-    print instInstanceLifecycle
-    print instInstanceType
-    print instKernelId
-    print instKeyName
-    print instLaunchTime
-    print instMonitoring
-    print instNetIfAttribs
-    print instPlacement
-    print instPlatform
-    print instPrivDnsName
-    print instPrivIpAddr
-    print instProductCodes
-    print instPubDnsName
-    print instPubIpAddr
-    print instRamdiskId
-    print instRootDevName
-    print instRootDevType
-    print instSecGroups
-    print instSrcDstChk
-    print instSpotReqId
-    print instSriovSuppt
-    print instState
-    print instStateReason
-    print instStateTransReas
-    print instSubnetId
-    print instTags
-    print instVirtType
-    print instVpcId
+    print "===================="
+##     print "Launch Index: " + str(instLaunchIndex)
+    print "Architecture: " + str(instArchitecture)
+    print "Block Devices: " + str(instBlockDevs)
+    print "Client Token: " + str(instClientToken)
+    print "EBS Optimized: " + str(instEBSoptimized)
+##     print "Hypervisor: " + str(instHypervisor)
+    print "Instance Profile: " + str(instInstanceProfile)
+    print "AMI ID: " + str(instAMIid)
+##     print "Instance ID: " + str(instInstanceId)
+##     print "Inst. Lifecycle: " + str(instInstanceLifecycle)
+    print "Instance Type: " + str(instInstanceType)
+##     print "Kernel ID: " + str(instKernelId)
+    print "Launch Key: " + str(instKeyName)
+##     print "LaunchTime: " + str(instLaunchTime)
+    print "Monitoring: " + str(instMonitoring)
+    print "Network Attribs.: " + str(instNetIfAttribs)
+    print "Placement AZ: " + str(instAZ)
+    print "Placement Tenancy: " + str(instTenancy)
+    print "Placement Group: " + str(instPlaceGrp)
+##     print "Platform: " + str(instPlatform)
+    print "Private DNS: " + str(instPrivDnsName)
+    print "Private IP: " + str(instPrivIpAddr)
+    print "Public DNS: " + str(instPubDnsName)
+    print "Public IP: " + str(instPubIpAddr)
+    print "Product Codes: " + str(instProductCodes)
+##     print "Ramdisk ID: " + str(instRamdiskId)
+    print "Root Device-name: " + str(instRootDevName)
+##     print "Root Device-type: " + str(instRootDevType)
+    print "Security Groups: " + str(instSecGroups)			# [{u'GroupName': 'SSH Proxy', u'GroupId': 'sg-096f176c'}]
+    print "Src/Dest Check: " + str(instSrcDstChk)
+    print "Spot Req. ID: " + str(instSpotReqId)
+    print "SRIOV Support: " + str(instSriovSuppt)
+##     print "Instance State: " + str(instState)
+##     print "Inst. State Reason: " + str(instStateReason)
+##     print "Inst. State Trans. Reason: " + str(instStateTransReas)
+    print "Subnet ID: " + str(instSubnetId)
+    print "Instance Tags: " + str(instTags)				# [{u'Value': 'GateOne HTTP-SSH Gateway', u'Key': 'Name'}, {u'Value': 'ACB', u'Key': 'Ownership'}]
+    print "Virtualization Type: " + str(instVirtType)
+    print "VPC ID: " + str(instVpcId)
 
 
 ############################
