@@ -77,141 +77,104 @@ def GetInstancInfo(instance):
     instVpcId = inst.vpc_id
 
     insert_map = (
-        "INSERT INTO Volume "
-        "("
+        "INSERT INTO Volume ("
            "AccountId, "
            "instanceId, "
-           "amiLaunchIndex, "
            "architecture, "
            "blockDevices_orig, "
-           "blockDevices_new, "
+           "rootVolId, "
            "clientToken, "
            "ebsOptimized, "
            "hypervisor, "
            "iamInstanceProfile, "
-           "instanceLifecycle, "
+           "imageId, "
            "instanceType, "
-           "kernelId, "
            "keyName, "
-           "launchTime, "
            "monitoring, "
            "networkInterfaceSet, "
            "placement, "
-           "platform, "
+           "instPlaceGrp, "
+           "instTenancy, "
            "privateDnsName_orig, "
-           "privateDnsName_new, "
            "privateIpAddress_orig, "
-           "privateIpAddress_new, "
            "productCodes, "
            "dnsName_orig, "
-           "dnsName_new, "
            "ipAddress_orig, "
-           "ipAddress_new, "
-           "ramdiskId, "
            "rootDeviceName, "
            "rootDeviceType, "
            "groupSet, "
            "sourceDestCheck, "
            "spotInstanceRequestId, "
            "sriovNetSupport, "
-           "instanceState, "
-           "stateReason, "
-           "reason, "
            "subnetId, "
            "tagSet, "
            "virtualizationType, "
-           "vpcId "
+           "vpcId"
         ") VALUES ("
            "%(AccountId)s, "
            "%(instanceId)s, "
-           "%(amiLaunchIndex)s, "
            "%(architecture)s, "
            "%(blockDevices_orig)s, "
-           "%(blockDevices_new)s, "
+           "%(rootVolId)s, "
            "%(clientToken)s, "
            "%(ebsOptimized)s, "
            "%(hypervisor)s, "
            "%(iamInstanceProfile)s, "
-           "%(instanceLifecycle)s, "
+           "%(imageId)s,"
            "%(instanceType)s, "
-           "%(kernelId)s, "
            "%(keyName)s, "
-           "%(launchTime)s, "
            "%(monitoring)s, "
            "%(networkInterfaceSet)s, "
            "%(placement)s, "
-           "%(platform)s, "
+           "%(instPlaceGrp)s, "
+           "%(instTenancy)s, "
            "%(privateDnsName_orig)s, "
-           "%(privateDnsName_new)s, "
            "%(privateIpAddress_orig)s, "
-           "%(privateIpAddress_new)s, "
            "%(productCodes)s, "
            "%(dnsName_orig)s, "
-           "%(dnsName_new)s, "
            "%(ipAddress_orig)s, "
-           "%(ipAddress_new)s, "
-           "%(ramdiskId)s, "
            "%(rootDeviceName)s, "
            "%(rootDeviceType)s, "
            "%(groupSet)s, "
            "%(sourceDestCheck)s, "
            "%(spotInstanceRequestId)s, "
            "%(sriovNetSupport)s, "
-           "%(instanceState)s, "
-           "%(stateReason)s, "
-           "%(reason)s, "
            "%(subnetId)s, "
            "%(tagSet)s, "
            "%(virtualizationType)s, "
-           "%(vpcId)s "
+           "%(vpcId)s"
         "); "
     )
 
     insert_data = {
             'AccountId'                 : AWSaccount,
-            'amiLaunchIndex'            : '',
+            'instanceId'                : instance,
             'architecture'              : instArchitecture,
-            'blockDevices_new'          : '',
             'blockDevices_orig'         : instRootDevName,
+            'rootVolId'                 : instRootVolId,
             'clientToken'               : instClientToken,
-            'dnsName_new'               : '',
-            'dnsName_orig'              : instPubDnsName,
             'ebsOptimized'              : instEBSoptimized,
-            'groupSet'                  : instSecGroups,
             'hypervisor'                : 'xen',
             'iamInstanceProfile'        : instInstanceProfile,
-            'imageId'			: instAMIid,
-            'instanceId'                : instance,
-            'instanceLifecycle'         : '',
-            'instanceState'             : '',
+            'imageId'                   : instAMIid,
             'instanceType'              : instInstanceType,
-            'InstEniName'		: InstEniName,
-            'InstMacAddress'		: InstMacAddress,
-            'instPlaceGrp'		: instPlaceGrp,
-            'instTenancy'		: instTenancy,
-            'ipAddress_new'             : '',
-            'ipAddress_orig'            : instPubIpAddr,
-            'kernelId'                  : '',
             'keyName'                   : instKeyName,
-            'launchTime'                : '',
             'monitoring'                : instMonitoring,
-            'networkInterfaceSet'       : '',
+            'networkInterfaceSet'       : '["NULL"]',
             'placement'                 : instAZ,
-            'platform'                  : '',
-            'privateDnsName_new'        : '',
+            'instPlaceGrp'              : instPlaceGrp,
+            'instTenancy'               : instTenancy,
             'privateDnsName_orig'       : instPrivDnsName,
-            'privateIpAddress_new'      : '',
             'privateIpAddress_orig'     : instPrivIpAddr,
             'productCodes'              : instProductCodes,
-            'ramdiskId'                 : '',
-            'reason'                    : '',
+            'dnsName_orig'              : instPubDnsName,
+            'ipAddress_orig'            : instPubIpAddr,
             'rootDeviceName'            : instRootDevName,
             'rootDeviceType'            : 'ebs',
-            'rootVolId'			: instRootVolId,
+            'groupSet'                  : instSecGroups,
             'sourceDestCheck'           : instSrcDstChk,
             'spotInstanceRequestId'     : instSpotReqId,
             'sriovNetSupport'           : instSriovSuppt,
-            'stateReason'               : '',
             'subnetId'                  : instSubnetId,
             'tagSet'                    : instTags,
             'virtualizationType'        : instVirtType,
