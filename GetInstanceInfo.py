@@ -77,11 +77,10 @@ def GetInstancInfo(instance):
     instVpcId = inst.vpc_id
 
     insert_map = (
-        "INSERT INTO Volume ("
+        "INSERT INTO Instance ("
            "AccountId, "
            "instanceId, "
            "architecture, "
-           "blockDevices_orig, "
            "rootVolId, "
            "clientToken, "
            "ebsOptimized, "
@@ -114,7 +113,6 @@ def GetInstancInfo(instance):
            "%(AccountId)s, "
            "%(instanceId)s, "
            "%(architecture)s, "
-           "%(blockDevices_orig)s, "
            "%(rootVolId)s, "
            "%(clientToken)s, "
            "%(ebsOptimized)s, "
@@ -150,7 +148,6 @@ def GetInstancInfo(instance):
             'AccountId'                 : AWSaccount,
             'instanceId'                : instance,
             'architecture'              : instArchitecture,
-            'blockDevices_orig'         : instRootDevName,
             'rootVolId'                 : instRootVolId,
             'clientToken'               : instClientToken,
             'ebsOptimized'              : instEBSoptimized,
@@ -181,6 +178,7 @@ def GetInstancInfo(instance):
             'vpcId'                     : instVpcId
     }
 
+    print('Inserting info for instance \'%s\' into Instance Table' % (instance))
     cursor.execute(insert_map, insert_data)
     dbconn.commit()
 
