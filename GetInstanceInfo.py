@@ -53,7 +53,7 @@ def GetInstancInfo(instance):
     instAMIid = inst.image_id
     instInstanceType = inst.instance_type
     instKeyName = inst.key_name
-    instMonitoring = inst.monitoring
+    instMonitoring = json.dumps(inst.monitoring)
     InstMacAddress = inst.network_interfaces_attribute[0]['MacAddress']
     InstEniName = inst.network_interfaces_attribute[0]['NetworkInterfaceId']
     InstEniAttachId = inst.network_interfaces_attribute[0]['Attachment']['AttachmentId']
@@ -67,7 +67,7 @@ def GetInstancInfo(instance):
     instPubIpAddr = inst.public_ip_address
     instRootDevName = inst.root_device_name
     instRootVolId = instBlockDevs[0]['Ebs']['VolumeId']
-    instSecGroups = inst.security_groups
+    instSecGroups = json.dumps(inst.security_groups)
     instSrcDstChk = inst.source_dest_check
     instSpotReqId = inst.spot_instance_request_id
     instSriovSuppt = inst.sriov_net_support
@@ -217,6 +217,10 @@ def GetInstancInfo(instance):
             'virtualizationType'        : instVirtType,
             'vpcId'                     : instVpcId
     }
+
+    cursor.execute(insert_map, insert_data)
+    dbconn.commit()
+
 
 
 ############################
