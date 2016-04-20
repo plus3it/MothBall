@@ -1,12 +1,16 @@
 #!/bin/python
 #
-# Iterate all the instances within a specific region and turn
-# them off.
+# Iterate all the instances within a specific region and identify
+# all attached EBS volumes. Record EBS volume information into
+# the 'Volume' (MySQL) database table.
 #
 #################################################################
 import argparse
 import boto3
+import json
 import subprocess
+from MothDBconnect import DbConnect, DbCnctInfo
+
 
 ###################################################################
 # Get list of regions in service
@@ -53,6 +57,8 @@ def GetEBSvolInfo(instid):
         ebs['Size'] = ec2.Volume(devvolid).size
         ebs['Type'] = ec2.Volume(devvolid).volume_type
         ebs['IOPS'] = ec2.Volume(devvolid).iops
+        ebs['AZ'] = ec2.Volume(devvolid).availability_zone
+        ebs['Tags'] = json.dumps(ec2.Volume(devvolid).tags)
         devmap[devvolid] = ebs
 
     return { instid : devmap }
@@ -60,7 +66,12 @@ def GetEBSvolInfo(instid):
 
 #################################
 # Insert EBS volume-info into SQL
-def ebsMysql(ebsVol):
+def ebsMysql(insertData):
+    # dbconn = DbConnect(DbCnctInfo('testclt'))
+    # cursor = dbconn.cursor()
+
+    # Define INSERT-string to pass to MySQL
+    # and associated value-mapping 
     insert_struct = (
         "INSERT INTO Volume "
 	"("
@@ -68,7 +79,6 @@ def ebsMysql(ebsVol):
           "instanceId, "
           "attachmentSet, "
           "availabilityZone, "
-          "createTime, "
           "encrypted, "
           "iops, "
           "kmsKeyId, "
@@ -84,7 +94,6 @@ def ebsMysql(ebsVol):
           "%(instanceId)s, "
           "%(attachmentSet)s, "
           "%(availabilityZone)s, "
-          "%(createTime)s, "
           "%(encrypted)s, "
           "%(iops)s, "
           "%(kmsKeyId)s, "
@@ -93,9 +102,44 @@ def ebsMysql(ebsVol):
           "%(status)s, "
           "%(tagSet)s, "
           "%(volumeId)s, "
-          "%(volumeType"
-	") "
+          "%(volumeType)s"
+	"); "
     )
+
+    # Extract values from passed-EBS structure
+    instance = insertData.keys()[0]
+    for volume in insertData[instance]:
+        volMount = insertData[instance][volume]['Mount']
+        volIops = insertData[instance][volume]['IOPS']
+        if volIops is None:
+            volIops = 0
+        volType = insertData[instance][volume]['Type']
+        volSize = insertData[instance][volume]['Size']
+        volZone = insertData[instance][volume]['AZ']
+        volTags = insertData[instance][volume]['Tags']
+
+        # Define mappings to SQL-managed values
+        insert_data = {
+	        'AccountId'		: AWSaccount,
+                'instanceId'		: instance,
+                'attachmentSet'		: volMount,
+                'availabilityZone'	: volZone,
+                'createTime'		: '',
+                'encrypted'		: '0',
+                'iops'			: volIops,
+                'kmsKeyId'		: '',
+                'size'			: volSize,
+                'snapshotId'		: '',
+                'status'		: '',
+                'tagSet'		: volTags,
+                'volumeId'		: volume,
+                'volumeType'		: volType
+	    }
+
+        # Insert row into Volume table
+        print('Writing volume \'%s\' for instance \'%s\' to Volume table' % (volume, instance))
+        cursor.execute(insert_struct, insert_data)
+        dbconn.commit()
 
 
 ############################
@@ -110,17 +154,32 @@ parseit.add_argument("-k", "--key",
                      help="AWS access-key ID")
 parseit.add_argument("-s", "--secret",
                      help="AWS access-key secret")
+parseit.add_argument("-t", "--target-account",
+                     help="AWS account to manage",
+                     required=True)
 
+# Assign CLI argument-values to fetchable name-space
 args = parseit.parse_args()
 
-# Initialize session/connection
+AWSaccount = args.target_account
+
+# Initialize session/connection to AWS
 session = boto3.Session(
     region_name = args.region,
     aws_access_key_id = args.key,
     aws_secret_access_key = args.secret
 )
 
+# Initialize connection to MySQL
+dbconn = DbConnect(DbCnctInfo('testclt'))
+cursor = dbconn.cursor()
+
 # Create list of in-region instances to stop
 for inst in GetInstances(args):
     instVols = GetEBSvolInfo(inst)
-    print instVols
+    ebsMysql(instVols)
+
+
+# Clean up connection to MySQL
+cursor.close()
+dbconn.close()
