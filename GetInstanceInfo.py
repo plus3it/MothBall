@@ -187,7 +187,7 @@ def GetInstancInfo(instance):
             'instanceType'              : instInstanceType,
             'InstEniName'		: InstEniName,
             'InstMacAddress'		: InstMacAddress,
-            'instPlaceGrp		: instPlaceGrp,
+            'instPlaceGrp'		: instPlaceGrp,
             'instTenancy'		: instTenancy,
             'ipAddress_new'             : '',
             'ipAddress_orig'            : instPubIpAddr,
