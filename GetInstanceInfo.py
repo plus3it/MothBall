@@ -167,6 +167,60 @@ def GetInstancInfo(instance):
         "); "
     )
 
+    insert_data = {
+            'AccountId'			: AWSaccount,
+            'instanceId'		: instance,
+            'amiLaunchIndex'		: '',
+            'architecture'		:
+            'blockDevices_orig'		: instRootDevName,
+            'blockDevices_new'		: '',
+            'clientToken'		: instClientToken,
+            'ebsOptimized'		: instEBSoptimized,
+            'hypervisor'		: 'xen',
+            'iamInstanceProfile'	: instInstanceProfile,
+            'instanceLifecycle'		: '',
+            'instanceType'		: instInstanceType,
+            'kernelId'			: '',
+            'keyName'			: instKeyName,
+            'launchTime'		: '',
+            'monitoring'		: instMonitoring,
+            'networkInterfaceSet'	: '',
+            'placement'			: instAZ,
+            'platform'			: '',
+            'privateDnsName_orig'	: instPrivDnsName,
+            'privateDnsName_new'	: '',
+            'privateIpAddress_orig'	: instPrivIpAddr,
+            'privateIpAddress_new'	: '',
+            'productCodes'		: instProductCodes,
+            'dnsName_orig'		: instPubDnsName,
+            'dnsName_new'		: '',
+            'ipAddress_orig'		: instPubIpAddr,
+            'ipAddress_new'		: '',
+            'ramdiskId'			: '',
+            'rootDeviceName'		: instRootDevName,
+            'rootDeviceType'		: 'ebs',
+            'groupSet'			: instSecGroups,
+            'sourceDestCheck'		: instSrcDstChk,
+            'spotInstanceRequestId'	: instSpotReqId,
+            'sriovNetSupport'		: instSriovSuppt,
+            'instanceState'		: '',
+            'stateReason'		: '',
+            'reason'			: '',
+            'subnetId'			:
+            				: instBlockDevs,
+            				: instAMIid,
+            				: InstMacAddress,
+            				: InstEniName,
+            				: InstEniAttachId,
+            				: instTenancy,
+            				: instPlaceGrp,
+            				: instRootVolId,
+            'subnetId'			: instSubnetId,
+            'tagSet'			: instTags,
+            'virtualizationType'	: instVirtType,
+            'vpcId'			: instVpcId
+     }
+
 
 ############################
 # Commandline option-handler
