@@ -1,7 +1,8 @@
 #!/bin/python
 #
-# Iterate all the instances within a specific region and turn
-# them off.
+# Iterate all the instances within a specific region and identify
+# all attached EBS volumes. Record EBS volume information into
+# the 'Volume' (MySQL) database table.
 #
 #################################################################
 import argparse
@@ -114,7 +115,7 @@ def ebsMysql(insertData):
 
         # Define mappings to SQL-managed values
         insert_data = {
-	        'AccountId'		: 'TEST',
+	        'AccountId'		: AWSaccount,
                 'instanceId'		: instance,
                 'attachmentSet'		: volMount,
                 'availabilityZone'	: 'TEST',
@@ -148,8 +149,14 @@ parseit.add_argument("-k", "--key",
                      help="AWS access-key ID")
 parseit.add_argument("-s", "--secret",
                      help="AWS access-key secret")
+parseit.add_argument("-t", "--target-account",
+                     help="AWS account to manage",
+                     required=True)
 
+# Assign CLI argument-values to fetchable name-space
 args = parseit.parse_args()
+
+AWSaccount = args.target_account
 
 # Initialize session/connection to AWS
 session = boto3.Session(
@@ -165,7 +172,6 @@ cursor = dbconn.cursor()
 # Create list of in-region instances to stop
 for inst in GetInstances(args):
     instVols = GetEBSvolInfo(inst)
-    # print instVols
     ebsMysql(instVols)
 
 
