@@ -56,6 +56,7 @@ def GetEBSvolInfo(instid):
         ebs['Size'] = ec2.Volume(devvolid).size
         ebs['Type'] = ec2.Volume(devvolid).volume_type
         ebs['IOPS'] = ec2.Volume(devvolid).iops
+        ebs['AZ'] = ec2.Volume(devvolid).availability_zone
         devmap[devvolid] = ebs
 
     return { instid : devmap }
@@ -108,6 +109,7 @@ def ebsMysql(insertData):
     for volume in insertData[instance]:
         volMount = insertData[instance][volume]['Mount']
         volIops = insertData[instance][volume]['IOPS']
+        volZone = insertData[instance][volume]['AZ']
         if volIops is None:
             volIops = 0
         volType = insertData[instance][volume]['Type']
@@ -118,7 +120,7 @@ def ebsMysql(insertData):
 	        'AccountId'		: AWSaccount,
                 'instanceId'		: instance,
                 'attachmentSet'		: volMount,
-                'availabilityZone'	: 'TEST',
+                'availabilityZone'	: volZone,
                 'createTime'		: '',
                 'encrypted'		: '0',
                 'iops'			: volIops,
