@@ -62,7 +62,7 @@ def GetInstancInfo(instance):
     instPlaceGrp = inst.placement['GroupName']
     instPrivDnsName = inst.private_dns_name
     instPrivIpAddr = inst.private_ip_address
-    instProductCodes = inst.product_codes
+    instProductCodes = json.dumps(inst.product_codes)
     instPubDnsName = inst.public_dns_name
     instPubIpAddr = inst.public_ip_address
     instRootDevName = inst.root_device_name
