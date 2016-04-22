@@ -45,5 +45,5 @@ CREATE TABLE `Instance` (
   `reason` tinyint(2) DEFAULT NULL,
   `tagSet` json DEFAULT NULL,
   `virtualizationType` varchar(11) DEFAULT NULL,
-  PRIMARY KEY (`instanceId`)
+  UNIQUE KEY (`instanceId`)
 )
