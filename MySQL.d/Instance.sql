@@ -9,7 +9,7 @@ CREATE TABLE `Instance` (
   `rootVolId` varchar(12) DEFAULT NULL,
   `ebsOptimized` tinyint(1) NOT NULL DEFAULT '0',
   `hypervisor` varchar(3) DEFAULT 'xen',
-  `iamInstanceProfile` varchar(45) DEFAULT NULL,
+  `iamInstanceProfile` json DEFAULT NULL,
   `clientToken` varchar(24) DEFAULT NULL,
   `instanceLifecycle` varchar(9) DEFAULT NULL,
   `instanceType` varchar(11) NOT NULL,

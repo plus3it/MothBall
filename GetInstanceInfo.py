@@ -49,7 +49,7 @@ def GetInstancInfo(instance):
     instBlockDevs = inst.block_device_mappings
     instClientToken = inst.client_token
     instEBSoptimized = inst.ebs_optimized
-    instInstanceProfile = inst.iam_instance_profile
+    instInstanceProfile = json.dumps(inst.iam_instance_profile)
     instAMIid = inst.image_id
     instInstanceType = inst.instance_type
     instKeyName = inst.key_name
