@@ -54,9 +54,14 @@ def GetInstancInfo(instance):
     instInstanceType = inst.instance_type
     instKeyName = inst.key_name
     instMonitoring = json.dumps(inst.monitoring)
-    InstMacAddress = inst.network_interfaces_attribute[0]['MacAddress']
-    InstEniName = inst.network_interfaces_attribute[0]['NetworkInterfaceId']
-    InstEniAttachId = inst.network_interfaces_attribute[0]['Attachment']['AttachmentId']
+
+    if inst.network_interfaces_attribute:
+        InstMacAddress = inst.network_interfaces_attribute[0]['MacAddress']
+        InstEniName = inst.network_interfaces_attribute[0]['NetworkInterfaceId']
+        InstEniAttachId = inst.network_interfaces_attribute[0]['Attachment']['AttachmentId']
+    else:
+        InstMacAddress = InstEniName = InstEniAttachId = ''
+
     instAZ = inst.placement['AvailabilityZone']
     instTenancy = inst.placement['Tenancy']
     instPlaceGrp = inst.placement['GroupName']
@@ -66,7 +71,12 @@ def GetInstancInfo(instance):
     instPubDnsName = inst.public_dns_name
     instPubIpAddr = inst.public_ip_address
     instRootDevName = inst.root_device_name
-    instRootVolId = instBlockDevs[0]['Ebs']['VolumeId']
+
+    if not instBlockDevs:
+        instRootVolId = ''
+    else:
+        instRootVolId = instBlockDevs[0]['Ebs']['VolumeId']
+
     instSecGroups = json.dumps(inst.security_groups)
     instSrcDstChk = inst.source_dest_check
     instSpotReqId = inst.spot_instance_request_id
