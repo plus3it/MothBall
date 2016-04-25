@@ -1,0 +1,23 @@
+CREATE TABLE `EIP` (
+  `AccountId` varchar(12) NOT NULL,
+  `instanceId` varchar(19) NOT NULL,
+  `MACaddress_orig` varchar(17) DEFAULT NULL,
+  `MACaddress_new` varchar(17) DEFAULT NULL,
+  `ifaceId_orig` VARCHAR(21) NOT NULL,
+  `ifaceId_new` VARCHAR(21) DEFAULT NULL,
+  `privateDNS_orig` VARCHAR(255) DEFAULT NULL,
+  `privateDNS_new` VARCHAR(255) DEFAULT NULL,
+  `privateIP_orig` VARCHAR(15) DEFAULT NULL,
+  `privateIP_new` VARCHAR(15) DEFAULT NULL,
+  `publicDNS_orig` VARCHAR(255) DEFAULT NULL,
+  `publicDNS_new` VARCHAR(255) DEFAULT NULL,
+  `publicIP_orig` VARCHAR(15) DEFAULT NULL,
+  `publicIP_new` VARCHAR(15) DEFAULT NULL,
+  `SrcDstChk` BOOL DEFAULT '0',
+  `SubnetId_orig` VARCHAR(24) NOT NULL,
+  `SubnetId_new` VARCHAR(24) DEFAULT NULL,
+  `VpcId_orig` VARCHAR(21) NOT NULL,
+  `VpcId_new` VARCHAR(21) DEFAULT NULL,
+  UNIQUE KEY (`ifaceId_orig`),
+  UNIQUE KEY (`ifaceId_new`)
+)
