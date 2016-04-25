@@ -48,63 +48,40 @@ def GetEipInfo(instance):
     instStruct = ec2.Instance(id=instance)
     instIface = instStruct.network_interfaces_attribute
 
-##     print instIface
-    eipDescription = instIface[0]['Description']
-    eipMac = instIface[0]['MacAddress']
-    eipNetIfId = instIface[0]['NetworkInterfaceId']
-    eipOwnerId = instIface[0]['OwnerId']
-    eipOwnerId = instIface[0]['OwnerId']
-    eipPrivDns = instIface[0]['PrivateDnsName']
-    eipPrivIpAddr = instIface[0]['PrivateIpAddress']
-    eipSrcDstChk = instIface[0]['SourceDestCheck']
-    eipStat = instIface[0]['Status']
-    eipSubnetId = instIface[0]['SubnetId']
-    eipVpcId = instIface[0]['VpcId']
+    if instIface is None:
+        eipDescription = eipMac = eipNetIfId = eipOwnerId = eipPrivDns = \
+        eipPrivIpAddr = eipSrcDstChk = eipStat = eipSubnetId = eipVpcId = ''
+    else:
+        eipDescription = instIface[0]['Description']
+        eipMac = instIface[0]['MacAddress']
+        eipNetIfId = instIface[0]['NetworkInterfaceId']
+        eipOwnerId = instIface[0]['OwnerId']
+        eipPrivDns = instIface[0]['PrivateDnsName']
+        eipPrivIpAddr = instIface[0]['PrivateIpAddress']
+        eipPubDns = instIface[0]['Association']['PublicDnsName']
+        eipPubIpAddr = instIface[0]['Association']['PublicIp']
+        eipSrcDstChk = instIface[0]['SourceDestCheck']
+        eipStat = instIface[0]['Status']
+        eipSubnetId = instIface[0]['SubnetId']
+        eipVpcId = instIface[0]['VpcId']
 
-    print eipDescription
-    print eipMac
-    print eipNetIfId
-    print eipOwnerId
-    print eipOwnerId
-    print eipPrivDns
-    print eipPrivIpAddr
-    print eipSrcDstChk
-    print eipStat
-    print eipSubnetId
-    print eipVpcId
+    tableInfo = {
+        'instanceId'	: instance,
+	'description'	: eipDescription,
+        'macAddress'	: eipMac,
+        'interfaceId'	: eipNetIfId,
+        'accountId'	: eipOwnerId,
+        'privateDNS'	: eipPrivDns,
+        'privateIpAddr'	: eipPrivIpAddr,
+        'publicDns'	: eipPubDns,
+        'publicIpAddr'	: eipPubIpAddr,
+        'eipSrcDstChk'	: eipSrcDstChk,
+        'eipStatus'	: eipStat,
+        'eipSubnetId'	: eipSubnetId,
+        'eipVpcId'	:eipVpcId
+    }
 
-##     eipStruct = ec2.NetworkInterface(id=instance)
-##     instArchitecture = inst.architecture
-##     instBlockDevs = inst.block_device_mappings
-##     instClientToken = inst.client_token
-##     instEBSoptimized = inst.ebs_optimized
-##     instInstanceProfile = json.dumps(inst.iam_instance_profile)
-##     instAMIid = inst.image_id
-##     instInstanceType = inst.instance_type
-##     instKeyName = inst.key_name
-##     instMonitoring = json.dumps(inst.monitoring)
-## 
-##     if inst.network_interfaces_attribute
-##     
-##     print eipStruct.association_attribute
-##     print eipStruct.attachment
-##     print eipStruct.availability_zone
-##     print eipStruct.description
-##     print eipStruct.groups
-##     print eipStruct.interface_type
-##     print eipStruct.mac_address
-##     print eipStruct.network_interface_id
-##     print eipStruct.owner_id
-##     print eipStruct.private_dns_name
-##     print eipStruct.private_ip_address
-##     print eipStruct.private_ip_addresses
-##     print eipStruct.requester_id
-##     print eipStruct.requester_managed
-##     print eipStruct.source_dest_check
-##     print eipStruct.status
-##     print eipStruct.subnet_id
-##     print eipStruct.tag_set
-##     print eipStruct.vpc_id
+    return tableInfo
 
 
 ############################
@@ -141,7 +118,7 @@ cursor = dbconn.cursor()
 
 # Create list of in-region instances to use for querying EIP info
 for inst in GetInstances(args):
-    GetEipInfo(inst)
+    print GetEipInfo(inst)
 
 # Clean up connection to MySQL
 cursor.close()
