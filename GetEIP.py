@@ -71,17 +71,56 @@ def GetEipInfo(instance):
         'macAddress'	: eipMac,
         'interfaceId'	: eipNetIfId,
         'accountId'	: eipOwnerId,
-        'privateDNS'	: eipPrivDns,
+        'privateDns'	: eipPrivDns,
         'privateIpAddr'	: eipPrivIpAddr,
         'publicDns'	: eipPubDns,
         'publicIpAddr'	: eipPubIpAddr,
-        'eipSrcDstChk'	: eipSrcDstChk,
-        'eipStatus'	: eipStat,
-        'eipSubnetId'	: eipSubnetId,
-        'eipVpcId'	:eipVpcId
+        'SrcDstChk'	: eipSrcDstChk,
+        'SubnetId'	: eipSubnetId,
+        'VpcId'		:eipVpcId
     }
 
     return tableInfo
+
+
+############################
+def insertEipMysql(dataMap):
+    # Define INSERT-string to pass to MySQL
+    # and associated value-mapping
+    insert_string = (
+        "INSERT INTO EIP "
+        "("
+          "AccountId, "
+          "instanceId, "
+          "MACaddress_orig, "
+          "ifaceId_orig, "
+          "privateDNS_orig, "
+          "privateIP_orig, "
+          "publicDNS_orig, "
+          "publicIP_orig, "
+          "SrcDstChk, "
+          "SubnetId_orig, "
+          "VpcId_orig"
+        ") "
+        "VALUES ("
+          "%(accountId)s, "
+          "%(instanceId)s, "
+          "%(macAddress)s, "
+          "%(interfaceId)s, "
+          "%(privateDns)s, "
+          "%(privateIpAddr)s, "
+          "%(publicDns)s, "
+          "%(publicIpAddr)s, "
+          "%(SrcDstChk)s, "
+          "%(SubnetId)s, "
+          "%(VpcId)s"
+        "); "
+    )
+
+    insert_data = dataMap
+
+    cursor.execute(insert_string, insert_data)
+    dbconn.commit()
 
 
 ############################
@@ -118,7 +157,7 @@ cursor = dbconn.cursor()
 
 # Create list of in-region instances to use for querying EIP info
 for inst in GetInstances(args):
-    print GetEipInfo(inst)
+    insertEipMysql(GetEipInfo(inst))
 
 # Clean up connection to MySQL
 cursor.close()
