@@ -28,8 +28,6 @@ def ValidRegion():
 ######################################
 # Get list of SecurityGroups in region
 def GetSGs(args):
-
-##     ec2 = session.resource(
     ec2 = session.client(
         'ec2',
         region_name = args.region,
@@ -40,24 +38,30 @@ def GetSGs(args):
     sgStructMain = ec2.describe_security_groups()['SecurityGroups']
     sgCount = len(sgStructMain)
 
+    # Iterate security-groups, extracting data
     for perSgStruct in sgStructMain:
+        accountId = ['OwnerId']
         sgId =  perSgStruct['GroupId']
         sgName =  perSgStruct['GroupName']
         sgVpsAssoc = perSgStruct['VpcId']
+        sgIngresPerms = perSgStruct['IpPermissions']
+        sgEgresPerms = perSgStruct['IpPermissionsEgress']
 
-        print 'SG Id:        ' + sgId
-        print 'SG Name:      ' + sgName
-        print 'SG VPC Assoc: ' + sgVpsAssoc
-        print '--------------'
+        # Send off to MySQL-insert function
+        SgInfoMysql(accountId, sgId, sgName, sgVpsAssoc, sgIngresPerms, sgEgresPerms)
 
 
-
-##     sgList = []
-##     for ret in ec2.describe_security_groups():
-##         sgList.append(ret)
-##         print ret
-## 
-
+########################################
+# Push SecurityGroup info to MySQL table
+def SgInfoMysql(accountId, sgId, sgName, sgVpsAssoc, sgIngresPerms, sgEgresPerms):
+    print 'SG Id:        ' + sgId
+    print 'SG Name:      ' + sgName
+    print 'SG VPC Assoc: ' + sgVpsAssoc
+    print 'Ingress Rules:' 
+    print json.dumps(sgIngresPerms)
+    print 'Egress Rules:' 
+    print json.dumps(sgEgresPerms)
+    print '--------------'
 
 
 ############################
