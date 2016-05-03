@@ -40,7 +40,7 @@ def GetSGs(args):
 
     # Iterate security-groups, extracting data
     for perSgStruct in sgStructMain:
-        accountId = ['OwnerId']
+        accountId = perSgStruct['OwnerId']
         sgId =  perSgStruct['GroupId']
         sgName =  perSgStruct['GroupName']
         sgVpsAssoc = perSgStruct['VpcId']
@@ -54,14 +54,38 @@ def GetSGs(args):
 ########################################
 # Push SecurityGroup info to MySQL table
 def SgInfoMysql(accountId, sgId, sgName, sgVpsAssoc, sgIngresPerms, sgEgresPerms):
-    print 'SG Id:        ' + sgId
-    print 'SG Name:      ' + sgName
-    print 'SG VPC Assoc: ' + sgVpsAssoc
-    print 'Ingress Rules:' 
-    print json.dumps(sgIngresPerms)
-    print 'Egress Rules:' 
-    print json.dumps(sgEgresPerms)
-    print '--------------'
+
+    insert_string = (
+        "INSERT INTO SecurityGroup "
+	"("
+	  "AccountId, "
+	  "sgId, "
+	  "sgName, "
+	  "vpcAssn, "
+	  "ingressRules, "
+	  "egressRules"
+	") "
+	"Values ("
+	  "%(AccountId)s, "
+	  "%(sgId)s, "
+	  "%(sgName)s, "
+	  "%(vpcAssn)s, "
+	  "%(ingressRules)s, "
+	  "%(egressRules)s"
+	"); "
+    )
+
+    insert_data = {
+        'AccountId'	: accountId,
+	'sgId'		: sgId,
+	'sgName'	: sgName,
+	'vpcAssn'	: sgVpsAssoc,
+	'ingressRules'	: json.dumps(sgIngresPerms),
+	'egressRules'	: json.dumps(sgEgresPerms)
+    }
+
+    cursor.execute(insert_string, insert_data)
+    dbconn.commit()
 
 
 ############################
