@@ -2,6 +2,7 @@ import json
 import boto3
 import logging
 
+
 class AWSManager(object):
 
     def __init__(self, region, key, secret):
@@ -31,7 +32,6 @@ class AWSManager(object):
             logging.warning('EC2 Session already exists.  Using existing Session.')
 
     def _validate_ec2_region(self):
-
 
         ec2 = boto3.client('ec2')
         regions = ec2.describe_regions()
@@ -71,29 +71,29 @@ class AWSManager(object):
 
     def _get_eip_info(self, instance):
 
-        instIfaces = self.ec2_session.Instance(instance).network_interfaces_attribute
+        interfaces = self.ec2_session.Instance(instance).network_interfaces_attribute
 
         if 'EIP' in self.data[instance]:
             logging.warning('EIP Data already exists in instance {0}'.format(instance))
         else:
             self.data[instance]['EIP'] = dict()
 
-        for interface in instIfaces:
-            eipNetIfId = interface['NetworkInterfaceId']
-            self.data[instance]['EIP'][eipNetIfId] = dict()
-            self.data[instance]['EIP'][eipNetIfId]['description'] = interface['Description']
-            self.data[instance]['EIP'][eipNetIfId]['macAddress'] = interface['MacAddress']
-            self.data[instance]['EIP'][eipNetIfId]['interfaceId'] = interface['NetworkInterfaceId']
-            self.data[instance]['EIP'][eipNetIfId]['accountId'] = interface['OwnerId']
-            self.data[instance]['EIP'][eipNetIfId]['privateDns'] = interface['PrivateDnsName']
-            self.data[instance]['EIP'][eipNetIfId]['privateIpAddr'] = interface['PrivateIpAddress']
-            self.data[instance]['EIP'][eipNetIfId]['SrcDstChk'] = interface['SourceDestCheck']
-            self.data[instance]['EIP'][eipNetIfId]['Status'] = interface['Status']
-            self.data[instance]['EIP'][eipNetIfId]['SubnetId'] = interface['SubnetId']
-            self.data[instance]['EIP'][eipNetIfId]['VpcId'] = interface['VpcId']
+        for interface in interfaces:
+            nid = interface['NetworkInterfaceId']
+            self.data[instance]['EIP'][nid] = dict()
+            self.data[instance]['EIP'][nid]['description'] = interface.get('Description')
+            self.data[instance]['EIP'][nid]['macAddress'] = interface.get('MacAddress')
+            self.data[instance]['EIP'][nid]['interfaceId'] = interface.get('NetworkInterfaceId')
+            self.data[instance]['EIP'][nid]['accountId'] = interface.get('OwnerId')
+            self.data[instance]['EIP'][nid]['privateDns'] = interface.get('PrivateDnsName')
+            self.data[instance]['EIP'][nid]['privateIpAddr'] = interface.get('PrivateIpAddress')
+            self.data[instance]['EIP'][nid]['SrcDstChk'] = interface.get('SourceDestCheck')
+            self.data[instance]['EIP'][nid]['Status'] = interface.get('Status')
+            self.data[instance]['EIP'][nid]['SubnetId'] = interface.get('SubnetId')
+            self.data[instance]['EIP'][nid]['VpcId'] = interface.get('VpcId')
             if 'Association' in interface:
-                self.data[instance]['EIP'][eipNetIfId]['publicDns'] = interface['Association'].get('PublicDnsName')
-                self.data[instance]['EIP'][eipNetIfId]['publicIpAddr'] = interface['Association'].get('PublicIp')
+                self.data[instance]['EIP'][nid]['publicDns'] = interface['Association'].get('PublicDnsName')
+                self.data[instance]['EIP'][nid]['publicIpAddr'] = interface['Association'].get('PublicIp')
 
     def get_info(self):
 
@@ -107,4 +107,3 @@ class AWSManager(object):
             self.data[instance] = dict()
             self._get_ebs_volume_info(instance)
             self._get_eip_info(instance)
-
