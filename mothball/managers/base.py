@@ -1,3 +1,5 @@
+from mothball.db.models.base import Base, EBS, EIP
+from mothball.db.mysql.base import SQLConnect
 import json
 import boto3
 import logging
@@ -5,15 +7,19 @@ import logging
 
 class AWSManager(object):
 
-    def __init__(self, region, key, secret):
+    def __init__(self, region, key, secret, username, password, db_type):
         # type: str, str, str
 
         self.region = region
         self.key = key
         self.secret = secret
+        self.username = username
+        self.password = password
+        self.db_type = db_type
         self.ec2_instances = None
         self.ec2_session = None
         self.data = dict()
+        self.rds_session = None
 
         self.Session = boto3.Session(
             region_name=self.region,
@@ -30,6 +36,15 @@ class AWSManager(object):
                                                      aws_secret_access_key=self.secret)
         else:
             logging.warning('EC2 Session already exists.  Using existing Session.')
+
+    def get_account_info(self):
+
+        self.iam_session = self.Session.resource('iam',
+                                                    region_name=self.region,
+                                                    aws_access_key_id=self.key,
+                                                    aws_secret_access_key=self.secret)
+        self.account_id = self.iam_session.CurrentUser().arn[13:25]
+        self.user_id = self.iam_session.CurrentUser().arn[26:]
 
     def _validate_ec2_region(self):
 
@@ -95,6 +110,44 @@ class AWSManager(object):
                 self.data[instance]['EIP'][nid]['publicDns'] = interface['Association'].get('PublicDnsName')
                 self.data[instance]['EIP'][nid]['publicIpAddr'] = interface['Association'].get('PublicIp')
 
+    def _check_rds_instance_exists(self, name):
+        return any(k for k in self.rds_session.describe_db_instances()['DBInstances'] if k['DBInstanceIdentifier'] == name)
+
+    def _get_rds_db_info(self, name):
+        for instance in self.rds_session.describe_db_instances()['DBInstances']:
+            if instance['DBInstanceIdentifier'] == name.lower():
+                self.instance_info = instance
+
+    def _create_rds_instance(self, name):
+
+        self.rds_session = self.Session.client('rds')
+
+        if not self._check_rds_instance_exists(name):
+            self.rds_session.create_db_instance(DBInstanceIdentifier=name,
+                                                AllocatedStorage = 200,
+                                                DBInstanceClass='db.t2.micro',
+                                                DBName='Backup',
+                                                Engine=self.db_type,
+                                                MasterUsername=self.username,
+                                                MasterUserPassword=self.password
+                                                )
+        self._get_rds_db_info(name)
+
+
+    def _create_rds_tables(self):
+
+        s = SQLConnect(self.instance_info['Endpoint']['Address'],
+                       self.instance_info['Endpoint']['Port'],
+                       self.username,
+                       self.password,
+                       self.db_type,
+                       )
+
+        s.create_tables()
+
+    def dump_ebs_record(self, ):
+        pass
+
     def get_info(self):
 
         if not self.ec2_instances:
@@ -106,4 +159,66 @@ class AWSManager(object):
 
             self.data[instance] = dict()
             self._get_ebs_volume_info(instance)
+
             self._get_eip_info(instance)
+
+    def dump_data(self):
+        if not self.data:
+            self.get_info()
+
+        self.get_account_info()
+
+        self._create_rds_tables()
+
+        s = SQLConnect(self.instance_info['Endpoint']['Address'],
+                       self.instance_info['Endpoint']['Port'],
+                       self.username,
+                       self.password,
+                       self.db_type
+               )
+
+        for instance in self.data:
+            for vol in self.data[instance]['EBS']:
+                ebs = self.data[instance]['EBS'][vol]
+                new_ebs = EBS()
+                # new_eip = EIP()
+                new_ebs.AccountId = self.account_id
+                new_ebs.instanceId = instance
+                new_ebs.attachmentSet = ebs.get('Mount')
+                new_ebs.availabilityZone = ebs.get('AZ')
+                new_ebs.createTime  = None
+                new_ebs.encrypted = False
+                new_ebs.iops = ebs.get('IOPS')
+                new_ebs.kmsKeyId = None
+                new_ebs.size = ebs.get('Size')
+                new_ebs.snapshotId = None
+                new_ebs.status = None
+                new_ebs.volumeId = vol
+                new_ebs.volumeType = ebs.get('Type')
+                #new_ebs.tagSet = ebs.get('Tags')
+                s.update(new_ebs)
+"""
+            for interface in self.data[instance]['EIP']:
+                eip = self.data[instance]['EIP'][interface]
+                new_eip = EIP()
+                new_eip.AccountId = self.account_id
+                new_eip.instanceId = instance
+                new_eip.MACaddress_orig = eip['']
+                new_eip.MACaddress_new =
+                new_eip.ifaceId_orig =
+                new_eip.ifaceId_new =
+                new_eip.privateDNS_orig =
+                new_eip.privateDNS_new =
+                new_eip.privateIP_orig =
+                new_eip.privateIP_new =
+                new_eip.publicDNS_orig =
+                new_eip.publicDNS_new =
+                new_eip.publicIP_orig =
+                new_eip.publicIP_new =
+                new_eip.SrcDstChk =
+                new_eip.SubnetId_orig =
+                new_eip.SubnetId_new =
+                new_eip.VpcId_orig =
+                new_eip.VpcId_new =
+"""
+
