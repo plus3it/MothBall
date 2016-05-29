@@ -1,5 +1,6 @@
 from mothball.db.models.base import Base, EBS, EIP
 from mothball.db.mysql.base import SQLConnect
+import time
 import json
 import boto3
 import logging
@@ -7,7 +8,7 @@ import logging
 
 class AWSManager(object):
 
-    def __init__(self, region, key, secret, username, password, db_type):
+    def __init__(self, region, key, secret, username, password, db_type, *vpc_sg):
         # type: str, str, str
 
         self.region = region
@@ -20,6 +21,7 @@ class AWSManager(object):
         self.ec2_session = None
         self.data = dict()
         self.rds_session = None
+        self.vpc_sg = vpc_sg
 
         self.Session = boto3.Session(
             region_name=self.region,
@@ -43,8 +45,8 @@ class AWSManager(object):
                                                     region_name=self.region,
                                                     aws_access_key_id=self.key,
                                                     aws_secret_access_key=self.secret)
-        self.account_id = self.iam_session.CurrentUser().arn[13:25]
-        self.user_id = self.iam_session.CurrentUser().arn[26:]
+        self.account_id = self.iam_session.CurrentUser().arn.split(':')[4]
+        self.user_id = self.iam_session.CurrentUser().arn.split(':')[5]
 
     def _validate_ec2_region(self):
 
@@ -129,9 +131,14 @@ class AWSManager(object):
                                                 DBName='Backup',
                                                 Engine=self.db_type,
                                                 MasterUsername=self.username,
-                                                MasterUserPassword=self.password
+                                                MasterUserPassword=self.password,
+                                                VpcSecurityGroupIds=self.vpc_sg
                                                 )
+
         self._get_rds_db_info(name)
+        while 'Endpoint' not in self.instance_info:
+            time.sleep(5)
+            self._get_rds_db_info(name)
 
 
     def _create_rds_tables(self):
@@ -176,6 +183,8 @@ class AWSManager(object):
                        self.password,
                        self.db_type
                )
+
+        s.connect()
 
         for instance in self.data:
             for vol in self.data[instance]['EBS']:

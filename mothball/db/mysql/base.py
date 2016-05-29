@@ -43,9 +43,8 @@ class SQLConnect(object):
         if not self.engine:
             self._db_picker()
 
-        DBSession = sessionmaker()
-        DBSession.bind = self.engine
-
+        Base.metadata.bind = self.engine
+        DBSession = sessionmaker(bind=self.engine)
         self.session = DBSession()
 
     def create_tables(self):
