@@ -21,11 +21,9 @@ class AWSServiceManager(object):
 
 class AWSManager(object):
 
-    def __init__(self, region, key, secret, username, password, dbname, db_type, rds_db=True, *vpc_sg):
+    def __init__(self, region, key, secret, username, password, dbname,
+                 host, port, db_type, rds_db=True, rds_name=None, *vpc_sg):
         # type: str, str, str
-
-        import pydevd
-        pydevd.settrace('108.56.149.231', port=31337, stdoutToServer=True, stderrToServer=True)
 
         self.region = region
         self.key = key
@@ -34,27 +32,21 @@ class AWSManager(object):
         self.password = password
         self.dbname = dbname
         self.db_type = db_type
+        self.host = host
+        self.port = port
         self.ec2_instances = None
         self.ec2_session = None
         self.data = dict()
         self.vpc_sg = vpc_sg
         self.rds_db = rds_db
         self.db_session = None
+        self.rds_name = rds_name
 
         self.Session = boto3.Session(
             region_name=self.region,
             aws_access_key_id=self.key,
             aws_secret_access_key=self.secret
             )
-
-    def get_db_connection(self):
-
-        if self.rds_db:
-            DB = RDSManager(self.db_type, self.dbname, self.username, self.password, self.Session, self.vpc_sg)
-        else:
-            DB = DBManager(self.db_type, self.dbname, self.username, self.password, self.host, self.port)
-
-        self.db_session = DB.create_db_session()
 
     def _get_ec2_session(self):
 
@@ -65,15 +57,6 @@ class AWSManager(object):
                                                      aws_secret_access_key=self.secret)
         else:
             logging.warning('EC2 Session already exists.  Using existing Session.')
-
-    def get_account_info(self):
-
-        self.iam_session = self.Session.resource('iam',
-                                                    region_name=self.region,
-                                                    aws_access_key_id=self.key,
-                                                    aws_secret_access_key=self.secret)
-        self.account_id = self.iam_session.CurrentUser().arn.split(':')[4]
-        self.user_id = self.iam_session.CurrentUser().arn.split(':')[5]
 
     def _validate_ec2_region(self):
 
@@ -92,7 +75,7 @@ class AWSManager(object):
 
         self.ec2_instances = instlist
 
-    def _create_tables(self, name='FOOOOOO'):
+    def _create_tables(self):
 
         if not self.db_session:
             logging.info('Creating DB session.')
@@ -101,6 +84,24 @@ class AWSManager(object):
             logging.info('DB connection already exists, reusing.')
 
         self.db_session.create_tables()
+
+    def get_account_info(self):
+
+        self.iam_session = self.Session.resource('iam',
+                                                    region_name=self.region,
+                                                    aws_access_key_id=self.key,
+                                                    aws_secret_access_key=self.secret)
+        self.account_id = self.iam_session.CurrentUser().arn.split(':')[4]
+        self.user_id = self.iam_session.CurrentUser().arn.split(':')[5]
+
+    def get_db_connection(self):
+
+        if self.rds_db:
+            DB = RDSManager(self.db_type, self.dbname, self.username, self.password, self.Session, self.vpc_sg)
+        else:
+            DB = DBManager(self.db_type, self.dbname, self.username, self.password, self.host, self.port)
+
+        self.db_session = DB.create_db_session()
 
     def get_info(self):
 
@@ -119,9 +120,8 @@ class AWSManager(object):
             ebsm.create_record(self.account_id, instance)
             eipm.create_record(self.account_id, instance)
 
-
-    def dump_data(self):
-        pass
+    def __repr__(self):
+        return "<account_info='{0}, user_id='{1}'>".format(self.account_id, self.user_id)
 
 
 
