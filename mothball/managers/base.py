@@ -4,8 +4,8 @@ import json
 import boto3
 import logging
 
-from mothball.db.models.base import Base, EBS, EIP
-from mothball.db.managers.base import RDSManager, DBManager, SQLConnect
+from mothball.managers.services import InstanceManager, SecurityGroupManager, EBSManager, EIPManager
+from mothball.db.managers.base import RDSManager, DBManager
 
 
 class AWSServiceManager(object):
@@ -16,7 +16,7 @@ class AWSServiceManager(object):
         self.db_session = db_session
 
     @abc.abstractmethod
-    def create_record(self, account_id, instance_id, instance):
+    def create_record(self, account_id, instance_id):
         return
 
 class AWSManager(object):
@@ -107,77 +107,36 @@ class AWSManager(object):
         if not self.ec2_instances:
             self._get_ec2_instances()
 
+        eipm = EIPManager(self.ec2_session, self.db_session)
+        ebsm = EBSManager(self.ec2_session, self.db_session)
+        sgm = SecurityGroupManager(self.ec2_session, self.db_session)
+        im = InstanceManager(self.ec2_session, self.db_session)
 
-
+        #TODO Conditionals for what to dump?
         for instance in self.ec2_instances:
-            if instance in self.data:
-                logging.warning('Instance {0} already exists in Data?'.format(instance))
+            im.create_record(self.account_id, instance)
+            sgm.create_record(self.account_id, instance)
+            ebsm.create_record(self.account_id, instance)
+            eipm.create_record(self.account_id, instance)
 
-            self.data[instance] = dict()
-            self._get_ebs_volume_info(instance)
-
-            self._get_eip_info(instance)
 
     def dump_data(self):
-        if not self.data:
-            self.get_info()
+        pass
 
-        self.get_account_info()
 
-        self._create_rds_tables()
 
-        s = SQLConnect(self.instance_info['Endpoint']['Address'],
-                       self.instance_info['Endpoint']['Port'],
-                       self.username,
-                       self.password,
-                       self.db_type
-               )
 
-        s.connect()
 
-        for instance in self.data:
-            for vol in self.data[instance]['EBS']:
-                ebs = self.data[instance]['EBS'][vol]
-                new_ebs = EBS()
-                # new_eip = EIP()
-                new_ebs.AccountId = self.account_id
-                new_ebs.instanceId = instance
-                new_ebs.attachmentSet = ebs.get('Mount')
-                new_ebs.availabilityZone = ebs.get('AZ')
-                new_ebs.createTime  = None
-                new_ebs.encrypted = False
-                new_ebs.iops = ebs.get('IOPS')
-                new_ebs.kmsKeyId = None
-                new_ebs.size = ebs.get('Size')
-                new_ebs.snapshotId = None
-                new_ebs.status = None
-                new_ebs.volumeId = vol
-                new_ebs.volumeType = ebs.get('Type')
-                #new_ebs.tagSet = ebs.get('Tags')
-                s.update(new_ebs)
 
-"""
-            for interface in self.data[instance]['EIP']:
-                eip = self.data[instance]['EIP'][interface]
-                new_eip = EIP()
-                new_eip.AccountId = self.account_id
-                new_eip.instanceId = instance
-                new_eip.MACaddress_orig = eip['']
-                new_eip.MACaddress_new =
-                new_eip.ifaceId_orig =
-                new_eip.ifaceId_new =
-                new_eip.privateDNS_orig =
-                new_eip.privateDNS_new =
-                new_eip.privateIP_orig =
-                new_eip.privateIP_new =
-                new_eip.publicDNS_orig =
-                new_eip.publicDNS_new =
-                new_eip.publicIP_orig =
-                new_eip.publicIP_new =
-                new_eip.SrcDstChk =
-                new_eip.SubnetId_orig =
-                new_eip.SubnetId_new =
-                new_eip.VpcId_orig =
-                new_eip.VpcId_new =
-"""
+
+
+
+
+
+
+
+
+
+
+
 

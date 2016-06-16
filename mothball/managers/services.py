@@ -10,9 +10,9 @@ class EBSManager(AWSServiceManager):
     def __init__(self, ec2_session, db_session):
         super(EBSManager, self).__init__(ec2_session, db_session)
 
-    def create_record(self, account_id, instance_id, instance):
+    def create_record(self, account_id, instance_id):
 
-        devices = self.ec2_session.Instance(instance).block_device_mappings
+        devices = self.ec2_session.Instance(instance_id).block_device_mappings
 
         for dev in devices:
             new_ebs = EBS()
@@ -41,9 +41,9 @@ class EIPManager(AWSServiceManager):
     def __init__(self, ec2_session, db_session):
         super(EIPManager, self).__init__(ec2_session, db_session)
 
-    def create_record(self, account_id, instance_id, instance):
+    def create_record(self, account_id, instance_id):
 
-        interfaces = self.ec2_session.Instance(instance).network_interfaces_attribute
+        interfaces = self.ec2_session.Instance(instance_id).network_interfaces_attribute
 
         for interface in interfaces:
             new_eip = EIP()
@@ -77,9 +77,9 @@ class SecurityGroupManager(AWSServiceManager):
     def __init__(self, ec2_session, db_session):
         super(SecurityGroupManager, self).__init__(ec2_session, db_session)
 
-    def create_record(self, account_id, instance_id, instance):
+    def create_record(self, account_id, instance_id):
 
-        sgs = self.ec2_session.Instance(instance).security_groups
+        sgs = self.ec2_session.Instance(instance_id).security_groups
 
         for sg in sgs:
             new_sg = SecurityGroup()
@@ -98,12 +98,12 @@ class SecurityGroupManager(AWSServiceManager):
             self.db_session.update(new_sg)
 
 
-class Instance(AWSServiceManager):
+class InstanceManager(AWSServiceManager):
 
     def __init__(self, ec2_session, db_session):
-        super(Instance, self).__init__(ec2_session, db_session)
+        super(InstanceManager, self).__init__(ec2_session, db_session)
 
-    def create_record(self, account_id, instance_id, instance):
+    def create_record(self, account_id, instance_id):
 
         new_inst = Instances()
 
