@@ -1,10 +1,11 @@
+    import abc
+import time
+import logging
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from mothball.db.models.base import Base
 
-import logging
-
-import abc
 
 class DatabaseBase(object):
     __metaclass__ = abc.ABCMeta
@@ -29,13 +30,14 @@ class RDSManager(object):
         self.name = name
         self.username = username
         self.password = password
-        self.Session = session
+        self.Session = awssession
         self.vpc_sg = vpc_sg
         self.instance_info = None
         self.rds_session = None
 
     def _check_rds_instance_exists(self):
-        return any(k for k in self.rds_session.describe_db_instances()['DBInstances'] if k['DBInstanceIdentifier'] == self.name)
+        return any(k for k in self.rds_session.describe_db_instances()['DBInstances']
+                   if k['DBInstanceIdentifier'] == self.name)
 
     def _get_rds_db_info(self):
         for instance in self.rds_session.describe_db_instances()['DBInstances']:
@@ -67,14 +69,14 @@ class RDSManager(object):
         else:
             self._get_rds_db_info()
 
-        DBSession = SQLConnect(self.instance_info['Endpoint']['Address'],
+        dbsession = SQLConnect(self.instance_info['Endpoint']['Address'],
                                self.instance_info['Endpoint']['Port'],
                                self.username,
                                self.password,
                                self.db_type,
                                )
 
-        return DBSession
+        return dbsession
 
 
 class DBManager(object):
@@ -88,19 +90,19 @@ class DBManager(object):
         self.port = port
 
     def create_db_session(self):
-        DBSession = SQLConnect(self.host,
+        dbsession = SQLConnect(self.host,
                                self.port,
                                self.username,
                                self.password,
                                self.db_type,
                                )
 
-        return DBSession
+        return dbsession
 
 
 class SQLConnect(object):
 
-    def __init__(self, address, port, dbname='ACBBackup', username='bull', password='bullbythehorns', db_type='managers'):
+    def __init__(self, address, port, dbname='Backup', username='bull', password='bullbythehorns', db_type='managers'):
         self.dbname = dbname
         self.username = username
         self.password = password
@@ -115,10 +117,10 @@ class SQLConnect(object):
 
     def _mysql(self):
         self.engine = create_engine('managers+pymysql://{0}:{1}@{2}:{3}/{4}'.format(self.username,
-                                                                                 self.password,
-                                                                                 self.address,
-                                                                                 self.port,
-                                                                                 self.dbname))
+                                                                                    self.password,
+                                                                                    self.address,
+                                                                                    self.port,
+                                                                                    self.dbname))
 
     def _postgres(self):
         self.engine = create_engine('postgresql://{0}:{1}@{2}:{3}/{4}'.format(self.username,
