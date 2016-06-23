@@ -22,6 +22,9 @@ def get_config(filename):
 def main(filename):
 
     config = get_config(filename)
+
+
+
     aws = AWSManager(config['AWS']['region'],
                      config['AWS']['access_key'],
                      config['AWS']['secret_key'],
@@ -33,7 +36,7 @@ def main(filename):
                      config['Database']['type'],
                      config['RDS']['use_rds'],
                      config['RDS']['name'],
-                     config['RDS']['vpc_sgs'])
+                     *config['RDS']['vpc_security_groups'])
 
     aws.get_account_info()
     aws.get_db_connection()

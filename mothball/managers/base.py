@@ -8,17 +8,6 @@ from mothball.managers.services import InstanceManager, SecurityGroupManager, EB
 from mothball.db.managers.base import RDSManager, DBManager
 
 
-class AWSServiceManager(object):
-    __metaclass__ = abc.ABCMeta
-
-    def __init__(self, ec2_session, db_session):
-        self.ec2_session = ec2_session
-        self.db_session = db_session
-
-    @abc.abstractmethod
-    def create_record(self, account_id, instance_id):
-        return
-
 class AWSManager(object):
 
     def __init__(self, region, key, secret, username, password, dbname,

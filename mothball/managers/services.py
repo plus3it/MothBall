@@ -1,8 +1,21 @@
+import abc
 import json
 import logging
 
 from mothball.db.models.base import EBS, EIP, SecurityGroup, Instances
-from mothball.managers.base import AWSServiceManager
+
+
+class AWSServiceManager(object):
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractmethod
+    def __init__(self, ec2_session, db_session):
+        self.ec2_session = ec2_session
+        self.db_session = db_session
+
+    @abc.abstractmethod
+    def create_record(self, account_id, instance_id):
+        return
 
 
 class EBSManager(AWSServiceManager):
