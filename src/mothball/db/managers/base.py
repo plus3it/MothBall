@@ -71,9 +71,10 @@ class RDSManager(object):
 
         dbsession = SQLConnect(self.instance_info['Endpoint']['Address'],
                                self.instance_info['Endpoint']['Port'],
-                               self.username,
-                               self.password,
-                               self.db_type,
+                               dbname=self.name,
+                               username=self.username,
+                               password=self.password,
+                               db_type=self.db_type
                                )
 
         return dbsession
@@ -92,9 +93,10 @@ class DBManager(object):
     def create_db_session(self):
         dbsession = SQLConnect(self.host,
                                self.port,
-                               self.username,
-                               self.password,
-                               self.db_type,
+                               dbname=self.name,
+                               username=self.username,
+                               password=self.password,
+                               db_type=self.db_type
                                )
 
         return dbsession

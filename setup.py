@@ -11,6 +11,7 @@ setup(
                          'boto3',
                          'pyyaml',
                          'PyMySQL',
-                         'pymysql-sa'
+                         'pymysql-sa',
+                         'urllib3'
                          ]
 )
