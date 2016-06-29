@@ -1,6 +1,6 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, DateTime, String, Integer, Boolean
-from sqlalchemy.dialects import postgresql, mysql
+#from sqlalchemy.dialects import postgresql, mysql
 from sqlalchemy.dialects.postgresql import JSON
 # from sqlalchemy.dialects.managers import JSON
 

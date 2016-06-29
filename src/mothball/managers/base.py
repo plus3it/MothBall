@@ -90,7 +90,9 @@ class AWSManager(object):
         else:
             DB = DBManager(self.db_type, self.dbname, self.username, self.password, self.host, self.port)
 
+
         self.db_session = DB.create_db_session()
+        self.db_session.connect()
 
     def get_info(self):
 

@@ -37,7 +37,7 @@ class RDSManager(object):
 
     def _check_rds_instance_exists(self):
         return any(k for k in self.rds_session.describe_db_instances()['DBInstances']
-                   if k['DBInstanceIdentifier'] == self.name)
+                   if k['DBInstanceIdentifier'] == self.name.lower())
 
     def _get_rds_db_info(self):
         for instance in self.rds_session.describe_db_instances()['DBInstances']:
@@ -116,11 +116,11 @@ class SQLConnect(object):
     # TODO breakout Mysql and Postgres to child classes that import SQLConenct (DBBase?)
 
     def _mysql(self):
-        self.engine = create_engine('managers+pymysql://{0}:{1}@{2}:{3}/{4}'.format(self.username,
-                                                                                    self.password,
-                                                                                    self.address,
-                                                                                    self.port,
-                                                                                    self.dbname))
+        self.engine = create_engine('mysql+pymysql://{0}:{1}@{2}:{3}/{4}'.format(self.username,
+                                                                                 self.password,
+                                                                                 self.address,
+                                                                                 self.port,
+                                                                                 self.dbname))
 
     def _postgres(self):
         self.engine = create_engine('postgresql://{0}:{1}@{2}:{3}/{4}'.format(self.username,
@@ -157,6 +157,6 @@ class SQLConnect(object):
     def update(self, data_object):
         if not self.session:
             logging.warning('No db session has been made to create a record for.  self.connect first.')
-
-        self.session.add(data_object)
-        self.session.commit()
+        else:
+            self.session.add(data_object)
+            self.session.commit()
