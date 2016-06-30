@@ -11,7 +11,7 @@ from mothball.db.managers.base import RDSManager, DBManager
 class AWSManager(object):
 
     def __init__(self, region, key, secret, username, password, dbname,
-                 host, port, db_type, rds_db=True, rds_name=None, *vpc_sg):
+                 host, port, db_type, dry_run=True, rds_db=True, rds_name=None, *vpc_sg):
         # type: str, str, str
 
         self.region = region
@@ -30,6 +30,7 @@ class AWSManager(object):
         self.rds_db = rds_db
         self.db_session = None
         self.rds_name = rds_name
+        self.dry_run = dry_run
 
         self.Session = boto3.Session(
             region_name=self.region,
@@ -74,6 +75,13 @@ class AWSManager(object):
 
         self.db_session.create_tables()
 
+    def _terminate(self, instances):
+
+        pass
+        # TODO try except
+        # self.ec2_session.terminate_instances(DryRun=self.dry_run,
+        #                                      InstanceIds=instances)
+
     def get_account_info(self):
 
         self.iam_session = self.Session.resource('iam',
@@ -86,10 +94,9 @@ class AWSManager(object):
     def get_db_connection(self):
 
         if self.rds_db:
-            DB = RDSManager(self.db_type, self.dbname, self.username, self.password, self.Session, self.vpc_sg)
+            DB = RDSManager(self.db_type, self.rds_name, self.dbname, self.username, self.password, self.Session, self.vpc_sg)
         else:
             DB = DBManager(self.db_type, self.dbname, self.username, self.password, self.host, self.port)
-
 
         self.db_session = DB.create_db_session()
         self.db_session.connect()
@@ -104,12 +111,18 @@ class AWSManager(object):
         sgm = SecurityGroupManager(self.ec2_session, self.db_session)
         im = InstanceManager(self.ec2_session, self.db_session)
 
-        #TODO Conditionals for what to dump?
+        # TODO check to see if tables exist?
+        self._create_tables()
+
+        mothballed_instances = list()
         for instance in self.ec2_instances:
             im.create_record(self.account_id, instance)
             sgm.create_record(self.account_id, instance)
-            ebsm.create_record(self.account_id, instance)
+            ebsm.create_record(self.account_id, instance, dry_run=self.dry_run)
             eipm.create_record(self.account_id, instance)
+            mothballed_instances.append(instance)
+
+        self._terminate(mothballed_instances)
 
     def __repr__(self):
         return "<account_info='{0}, user_id='{1}'>".format(self.account_id, self.user_id)
