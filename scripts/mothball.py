@@ -40,8 +40,13 @@ def main(filename, dryrun):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', dest='filename', default='mothball.config')
-    parser.add_argument('--terminate', dest='dryrun', default=True, action='store_false')
+    parser.add_argument('--config', dest='filename', default='mothball.config',
+                        help='This points to the mothball.config file to be used.')
+    parser.add_argument('--terminate', dest='dryrun', default=True, action='store_false',
+                        help='This option must be used in order to turn dryrun off.  In dryrun mode data is stored'
+                             'in the database; however will not snapshot the volumes nor terminate the Instance.  When'
+                             'this option is used it will turn off dryrun. Be careful this will terminate all ec2'
+                             'instances in a region for the account being used!')
 
     args = parser.parse_args()
 
