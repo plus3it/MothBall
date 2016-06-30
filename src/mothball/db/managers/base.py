@@ -7,23 +7,49 @@ from sqlalchemy.orm import sessionmaker
 from mothball.db.models.base import Base
 
 
-class DatabaseBase(object):
-    __metaclass__ = abc.ABCMeta
+class DBManager(object):
+    """
+    Interface for non-RDS databases.
+    """
 
-    @abc.abstractmethod
-    def connect(self):
-        return
+    def __init__(self, db_type, name, username, password, host, port):
+        """
 
-    @abc.abstractmethod
-    def close(self):
-        return
+        :param db_type:
+        :param name:
+        :param username:
+        :param password:
+        :param host:
+        :param port:
+        """
+        self.db_type = db_type
+        self.name = name
+        self.username = username
+        self.password = password
+        self.host = host
+        self.port = port
 
-    @abc.abstractmethod
-    def update(self):
-        return
+    def create_db_session(self):
+        """
+
+        :return:
+        :rtype: Database Session Object
+        """
+        dbsession = SQLConnect(self.host,
+                               self.port,
+                               dbname=self.dbname,
+                               username=self.username,
+                               password=self.password,
+                               db_type=self.db_type
+                               )
+
+        return dbsession
 
 
 class RDSManager(object):
+    """
+    Interface for RDS databases.
+    """
 
     def __init__(self, db_type, name, dbname, username, password, awssession, vpc_sg):
         self.db_type = db_type
@@ -88,29 +114,10 @@ class RDSManager(object):
         return dbsession
 
 
-class DBManager(object):
-
-    def __init__(self, db_type, name, username, password, host, port):
-        self.db_type = db_type
-        self.name = name
-        self.username = username
-        self.password = password
-        self.host = host
-        self.port = port
-
-    def create_db_session(self):
-        dbsession = SQLConnect(self.host,
-                               self.port,
-                               dbname=self.dbname,
-                               username=self.username,
-                               password=self.password,
-                               db_type=self.db_type
-                               )
-
-        return dbsession
-
-
 class SQLConnect(object):
+    """
+    Interface for database connections.
+    """
 
     def __init__(self, address, port, dbname='Backup', username='bull', password='bullbythehorns', db_type='managers'):
         self.dbname = dbname
