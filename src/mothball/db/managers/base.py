@@ -25,9 +25,10 @@ class DatabaseBase(object):
 
 class RDSManager(object):
 
-    def __init__(self, db_type, name, username, password, awssession, vpc_sg):
+    def __init__(self, db_type, name, dbname, username, password, awssession, vpc_sg):
         self.db_type = db_type
         self.name = name
+        self.dbname = dbname
         self.username = username
         self.password = password
         self.Session = awssession
@@ -45,11 +46,18 @@ class RDSManager(object):
                 self.instance_info = instance
 
     def _create_rds_instance(self):
+
+        if self.db_type.lower() != 'mysql':
+            version = '9.5'
+        else:
+            version = '5.7'
+
         self.rds_session.create_db_instance(DBInstanceIdentifier=self.name,
                                             AllocatedStorage=200,
                                             DBInstanceClass='db.t2.micro',
-                                            DBName='Backup',
+                                            DBName=self.dbname,
                                             Engine=self.db_type,
+                                            EngineVersion=version,
                                             MasterUsername=self.username,
                                             MasterUserPassword=self.password,
                                             VpcSecurityGroupIds=self.vpc_sg
@@ -71,7 +79,7 @@ class RDSManager(object):
 
         dbsession = SQLConnect(self.instance_info['Endpoint']['Address'],
                                self.instance_info['Endpoint']['Port'],
-                               dbname=self.name,
+                               dbname=self.dbname,
                                username=self.username,
                                password=self.password,
                                db_type=self.db_type
@@ -93,7 +101,7 @@ class DBManager(object):
     def create_db_session(self):
         dbsession = SQLConnect(self.host,
                                self.port,
-                               dbname=self.name,
+                               dbname=self.dbname,
                                username=self.username,
                                password=self.password,
                                db_type=self.db_type
