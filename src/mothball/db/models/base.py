@@ -8,7 +8,9 @@ from sqlalchemy.dialects.mysql import JSON
 Base = declarative_base()
 
 class Instances(Base):
-
+    """
+    Model for Instances Database Table
+    """
     __tablename__ = 'Instances'
 
 
@@ -18,6 +20,9 @@ class Instances(Base):
     AvailabilityZone = Column(String(20), nullable=False)
 
     def __repr__(self):
+        """
+        Returns all of the attribute data currently set on the model.
+        """
         return "<Account(AccountId='{0}', instanceId='{1}', AvailabilityZone='{2}', " \
                "id='{4}'".format(self.AccountId,
                                  self.instanceId,
@@ -26,7 +31,9 @@ class Instances(Base):
 
 
 class EBS(Base):
-
+    """
+    Model for EBS Database Table
+    """
     __tablename__ = 'EBS'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -39,13 +46,16 @@ class EBS(Base):
     iops = Column(Integer)
     kmsKeyId = Column(String(12))
     size = Column(Integer, nullable=False)
-    snapshotId = Column(String(20))
+    snapshotId = Column(String(22))
     status = Column(String(9))
     tagSet = Column(JSON)
     volumeId = Column(String(12), primary_key=True, nullable=False)
     volumeType = Column(String(8), nullable=False, default='gp2')
 
     def __repr__(self):
+        """
+        Returns all of the attribute data currently set on the model.
+        """
         return "<EBS(AccountID='{0}', instanceId='{1}', attachmentSet='{2}', availablityZone='{3}'," \
                "createTime='{4}', encrypted='{5}', iops='{6}', kmsKeyId='{7}', size='{8}', snapshotId='{9}', " \
                "status='{10}', tagSet='{11}', volumeId='{12}', volumeType='{13}'".format(self.AccountId,
@@ -66,7 +76,9 @@ class EBS(Base):
 
 
 class EIP(Base):
-
+    """
+    Model for EIP Database Table
+    """
     __tablename__ = 'EIP'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -92,6 +104,9 @@ class EIP(Base):
     vpcId = Column(String(21), nullable=False)
 
     def __repr__(self):
+        """
+        Returns all of the attribute data currently set on the model.
+        """
         return "<EIP(AccountID='{0}', Id='{1}', instanceId='{2}', interfaceId='{3}'," \
                "association='{4}', assocAttr='{5}', attachment='{6}', description='{7}', " \
                "groups='{8}', type='{9}', MACaddress='{10}', owner='{11}', " \
@@ -122,7 +137,9 @@ class EIP(Base):
 
 
 class SecurityGroup(Base):
-
+    """
+    Model for SecurityGroup Database Table
+    """
     __tablename__ = 'SecurityGroup'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -137,6 +154,9 @@ class SecurityGroup(Base):
     tagSet = Column(JSON)
 
     def __repr__(self):
+        """
+        Returns all of the attribute data currently set on the model.
+        """
         return "<SecurityGroup(AccountID='{0}', instanceId='{1}', sgId='{2}', description='{3}', name='{4}'" \
                "vpcId='{5}' ingressRules='{6} egressRules='{7} id='{8} ".format(self.AccountId,
                                                                                 self.instanceId,
