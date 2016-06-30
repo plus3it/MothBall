@@ -60,6 +60,8 @@ class AWSManager(object):
         self.ec2_session = None
         self.db_session = None
         self.iam_session = None
+        self.account_id = None
+        self.user_id = None
 
         self.Session = boto3.Session(
             region_name=self.region,
@@ -135,11 +137,12 @@ class AWSManager(object):
         object for database access.
         """
         if self.rds_db:
-            DB = RDSManager(self.db_type, self.rds_name, self.dbname, self.username, self.password, self.Session, self.vpc_sg)
+            db = RDSManager(self.db_type, self.rds_name, self.dbname, self.username, self.password, self.Session,
+                            self.vpc_sg)
         else:
-            DB = DBManager(self.db_type, self.dbname, self.username, self.password, self.host, self.port)
+            db = DBManager(self.db_type, self.dbname, self.username, self.password, self.host, self.port)
 
-        self.db_session = DB.create_db_session()
+        self.db_session = db.create_db_session()
         self.db_session.connect()
 
     def backup_instances(self):
