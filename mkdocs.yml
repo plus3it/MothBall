@@ -1,0 +1,5 @@
+site_name: mothball
+theme: readthedocs
+markdown_extensions:
+    - toc:
+        permalink: True
