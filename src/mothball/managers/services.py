@@ -1,30 +1,54 @@
 import abc
-import json
 import logging
-import datetime
 
 from mothball.db.models.base import EBS, EIP, SecurityGroup, Instances
 
 
-class AWSServiceManager(object):
+class AWSConfigurationManager(object):
+    """
+    Abstract Base Class for AWS Services Classes.
+    """
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def __init__(self, ec2_session, db_session):
+        """
+        :param ec2_session: ec2 session to collect data from.
+        :type ec2_session: ec2 session object
+        :param db_session: database session to backup data to.
+        :type db_session: database session object
+        """
         self.ec2_session = ec2_session
         self.db_session = db_session
 
     @abc.abstractmethod
     def create_record(self, account_id, instance_id):
+        """
+        Abstract method for creating a record for the AWS Service.
+
+        :param account_id: The account id being backed up.
+        :type account_id: basestring
+        :param instance_id: The instance id being backed up.
+        :type instance_id: basestring
+        """
         return
 
 
-class EBSManager(AWSServiceManager):
+class EBSManager(AWSConfigurationManager):
+    """
+    Class for backing up the Elastic Book Store configuration information for a particular instance.
+    """
 
     def __init__(self, ec2_session, db_session):
         super(EBSManager, self).__init__(ec2_session, db_session)
 
     def _volume_snapshot(self, volume_id):
+        """
+        Private method for creating a volume snapshot for archival.
+
+        :param volume_id: The volume id being snapshotted.
+        :type volume_id: basestring
+        """
 
         logging.info('Snapshot of Volume: {0}'.format(volume_id))
         # TODO Try Except
@@ -66,7 +90,10 @@ class EBSManager(AWSServiceManager):
                 logging.debug('VolumeId already exists!')
 
 
-class EIPManager(AWSServiceManager):
+class EIPManager(AWSConfigurationManager):
+    """
+    Class for backing up the Elastic IP configuration information for a particular instance.
+    """
 
     def __init__(self, ec2_session, db_session):
         super(EIPManager, self).__init__(ec2_session, db_session)
@@ -105,7 +132,10 @@ class EIPManager(AWSServiceManager):
             self.db_session.update(new_eip)
 
 
-class SecurityGroupManager(AWSServiceManager):
+class SecurityGroupManager(AWSConfigurationManager):
+    """
+    Class for backing up the Security Group configuration information for a particular instance.
+    """
 
     def __init__(self, ec2_session, db_session):
         super(SecurityGroupManager, self).__init__(ec2_session, db_session)
@@ -134,7 +164,10 @@ class SecurityGroupManager(AWSServiceManager):
                 logging.debug('Security group already exists.')
 
 
-class InstanceManager(AWSServiceManager):
+class InstanceManager(AWSConfigurationManager):
+    """
+    Class for backing up the Instance configuration information for a particular instance.
+    """
 
     def __init__(self, ec2_session, db_session):
         super(InstanceManager, self).__init__(ec2_session, db_session)
