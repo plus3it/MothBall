@@ -2,7 +2,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, DateTime, String, Integer, Boolean
 #from sqlalchemy.dialects import postgresql, mysql
 from sqlalchemy.dialects.postgresql import JSON
-# from sqlalchemy.dialects.managers import JSON
+from sqlalchemy.dialects.mysql import JSON
 
 
 Base = declarative_base()
@@ -14,7 +14,7 @@ class Instances(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     AccountId = Column(String(12), nullable=False)
-    instanceId = Column(String(19), nullable=False)
+    instanceId = Column(String(19), unique= True, nullable=False)
     AvailabilityZone = Column(String(20), nullable=False)
 
     def __repr__(self):
@@ -29,6 +29,7 @@ class EBS(Base):
 
     __tablename__ = 'EBS'
 
+    id = Column(Integer, primary_key=True, autoincrement=True)
     AccountId = Column(String(12), nullable=False)
     instanceId = Column(String(19), nullable=False)
     attachmentSet = Column(String(10), nullable=False)
@@ -36,11 +37,11 @@ class EBS(Base):
     createTime = Column(DateTime, nullable=True)
     encrypted = Column(Boolean, default=False, nullable=False)
     iops = Column(Integer)
-    kmsKeyId = Column(String(12), default='NULL')
+    kmsKeyId = Column(String(12))
     size = Column(Integer, nullable=False)
-    snapshotId = Column(String(13), default='Null')
-    status = Column(String(9), default='NULL')
-    tagSet = Column(JSON, default='NULL')
+    snapshotId = Column(String(20))
+    status = Column(String(9))
+    tagSet = Column(JSON)
     volumeId = Column(String(12), primary_key=True, nullable=False)
     volumeType = Column(String(8), nullable=False, default='gp2')
 
@@ -52,7 +53,7 @@ class EBS(Base):
                                                                                          self.attachmentSet,
                                                                                          self.availabilityZone,
                                                                                          self.createTime,
-                                                                                         self.encypted,
+                                                                                         self.encrypted,
                                                                                          self.iops,
                                                                                          self.kmsKeyId,
                                                                                          self.size,
@@ -72,22 +73,22 @@ class EIP(Base):
     AccountId = Column(String(12), nullable=False)
     instanceId = Column(String(19), nullable=False)
     interfaceId = Column(String(20), nullable=False)
-    association = Column(JSON, default='NULL')
-    assocAttr = Column(JSON, default='NULL')
-    attachment = Column(JSON, default='NULL')
+    association = Column(JSON)
+    assocAttr = Column(JSON)
+    attachment = Column(JSON)
     description = Column(String(255), nullable=False)
-    groups = Column(JSON, default='NULL')
-    type = Column(String(20), default='NULL')
+    groups = Column(JSON)
+    type = Column(String(20))
     MACaddress = Column(String(17), nullable=False)
     owner = Column(String(12), nullable=False)
-    privateIP = Column(String(15), default='NULL')
-    privateIPs = Column(JSON, default='NULL')
-    requester = Column(String(24), nullable=False)
+    privateIP = Column(String(15))
+    privateIPs = Column(JSON)
+    requester = Column(String(24))
     managed = Column(Boolean, nullable=False)
     SrcDstChk = Column(Boolean, nullable=False)
     status = Column(String(9), nullable=False)
     subnetId = Column(String(24), nullable=False)
-    tagSet = Column(JSON, default='NULL')
+    tagSet = Column(JSON)
     vpcId = Column(String(21), nullable=False)
 
     def __repr__(self):
@@ -127,13 +128,13 @@ class SecurityGroup(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     AccountId = Column(String(12), nullable=False)
     instanceId = Column(String(19), nullable=False)
-    sgId = Column(String(20), nullable=False, unique=True)
-    description = Column(String(255), default='NULL')
-    name = Column(String(100), default='NULL')
+    sgId = Column(String(20), nullable=False)
+    description = Column(String(255))
+    name = Column(String(100))
     vpcId = Column(String(21), nullable=False)
-    ingressRules = Column(JSON, default='NULL')
-    egressRules = Column(JSON, default='NULL')
-    tagSet = Column(JSON, default='NULL')
+    ingressRules = Column(JSON)
+    egressRules = Column(JSON)
+    tagSet = Column(JSON)
 
     def __repr__(self):
         return "<SecurityGroup(AccountID='{0}', instanceId='{1}', sgId='{2}', description='{3}', name='{4}'" \
