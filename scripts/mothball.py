@@ -15,7 +15,7 @@ def get_config(filename):
         logging.error('config file does not exist!')
     return config
 
-def main(filename):
+def main(filename, dryrun):
     config = get_config(filename)
     aws = AWSManager(config['AWS']['region'],
                      config['AWS']['access_key'],
@@ -26,6 +26,7 @@ def main(filename):
                      config['Database']['host'],
                      config['Database']['port'],
                      config['Database']['type'],
+                     dryrun,
                      config['RDS']['use_rds'],
                      config['RDS']['name'],
                      *config['RDS']['vpc_security_groups'])
@@ -40,6 +41,8 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', dest='filename', default='mothball.config')
+    parser.add_argument('--terminate', dest='dryrun', default=True, action='store_false')
 
+    args = parser.parse_args()
 
-    main(parser.parse_args().filename)
+    main(args.filename, args.dryrun)
