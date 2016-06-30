@@ -12,18 +12,23 @@ class DBManager(object):
     Interface for non-RDS databases.
     """
 
-    def __init__(self, db_type, name, username, password, host, port):
+    def __init__(self, db_type, dbname, username, password, host, port):
         """
-
-        :param db_type:
-        :param name:
-        :param username:
-        :param password:
-        :param host:
-        :param port:
+        :param db_type: Currently only supports MySQL and PostgreSQL
+        :type db_type: string
+        :param dbname: Name of the Database to be used.
+        :type dbname: string
+        :param username: The Database Username (will be created if it doesn't exist)
+        :type username: string
+        :param password: The Database Password (will be created if it doesn't exist)
+        :type password: string
+        :param host: The hostname for the database to be used or created. (Only needed if RDS is not being used)
+        :type host: string
+        :param port: The port for the database to be used or created. (Only needed if RDS is not being used)
+        :type port: string
         """
         self.db_type = db_type
-        self.name = name
+        self.dbname = dbname
         self.username = username
         self.password = password
         self.host = host
@@ -31,8 +36,9 @@ class DBManager(object):
 
     def create_db_session(self):
         """
+        Create the database session.
 
-        :return:
+        :return: Database session interface.
         :rtype: Database Session Object
         """
         dbsession = SQLConnect(self.host,
@@ -52,6 +58,22 @@ class RDSManager(object):
     """
 
     def __init__(self, db_type, name, dbname, username, password, awssession, vpc_sg):
+        """
+        :param db_type: Currently only supports MySQL and PostgreSQL
+        :type db_type: string
+        :param name: RDS name
+        :type name: string
+        :param dbname: Name of the Database to be used.
+        :type dbname: string
+        :param username: The Database Username (will be created if it doesn't exist)
+        :type username: string
+        :param password: The Database Password (will be created if it doesn't exist)
+        :type password: string
+        :param awssession: The interface for the aws ec2 session.
+        :type awssession: EC2 Session Object
+        :param vpc_sg: The security groups that should be applied to the RDS Instance.
+        :type vpc_sg: list of strings
+        """
         self.db_type = db_type
         self.name = name
         self.dbname = dbname
@@ -63,16 +85,29 @@ class RDSManager(object):
         self.rds_session = None
 
     def _check_rds_instance_exists(self):
+        """
+        Private method to check to see if an RDS Instance already exists for the name that was given.
+
+        :return: Validation if an RDS Instance exists with the supplied name.
+        :rtype: bool
+        """
         return any(k for k in self.rds_session.describe_db_instances()['DBInstances']
                    if k['DBInstanceIdentifier'] == self.name.lower())
 
     def _get_rds_db_info(self):
+        """
+        Private method to collect the RDS Instance info. Sets the instance_info attribute with the configuration
+         information for the RDS Instance.
+        """
         for instance in self.rds_session.describe_db_instances()['DBInstances']:
             if instance['DBInstanceIdentifier'] == self.name.lower():
                 self.instance_info = instance
 
     def _create_rds_instance(self):
-
+        """
+        Private method to create the RDS Instance. If the instance is created, it will loop until it the instance is
+        available to be used so that the application can continue.
+        """
         if self.db_type.lower() != 'mysql':
             version = '9.5'
         else:
@@ -95,7 +130,12 @@ class RDSManager(object):
             self._get_rds_db_info()
 
     def create_db_session(self):
+        """
+        Create the RDS database session.
 
+        :return: RDS Database session interface.
+        :rtype: Database Session Object
+        """
         self.rds_session = self.Session.client('rds')
 
         if not self._check_rds_instance_exists():
