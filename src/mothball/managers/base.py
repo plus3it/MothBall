@@ -1,6 +1,3 @@
-import abc
-import time
-import json
 import boto3
 import logging
 
@@ -9,10 +6,41 @@ from mothball.db.managers.base import RDSManager, DBManager
 
 
 class AWSManager(object):
+    """
+    This is the core interface for the User's AWS Account.  It handles all interactions with AWS Services.
+
+    """
 
     def __init__(self, region, key, secret, username, password, dbname,
                  host, port, db_type, dry_run=True, rds_db=True, rds_name=None, *vpc_sg):
-        # type: str, str, str
+        """
+        :param region: The region to be backedup.
+        :type region: string
+        :param key: The AWS key for the User's AWS account.
+        :type key: string
+        :param secret: The Secret key for the User's AWS account.
+        :type secret: string
+        :param username: The Database Username (will be created if it doesn't exist)
+        :type username: basestring
+        :param password: The Database Password (will be created if it doesn't exist)
+        :type password: basestring
+        :param dbname: The Database name.
+        :type dbname: basestring
+        :param host: The hostname for the database to be used or created. (Only needed if RDS is not being used)
+        :type host: basestring
+        :param port: The port for the database to be used or created. (Only needed if RDS is not being used)
+        :type port: basestring
+        :param db_type: Currently only supports MySQL and PostgreSQL
+        :type db_type: basestring
+        :param dry_run: If False EBS volumes should be snapshotted and ec2 instances terminated.
+        :type dry_run: bool
+        :param rds_db: If RDS should be used for housing the configuration data.
+        :type rds_db: bool
+        :param rds_name: The name of the RDS instance being created or used.
+        :type rds_name: basestring
+        :param vpc_sg: The security groups for the RDS instance to be used. (Only needed for creating RDS Instances)
+        :type vpc_sg: list of basestring
+        """
 
         self.region = region
         self.key = key
@@ -23,14 +51,15 @@ class AWSManager(object):
         self.db_type = db_type
         self.host = host
         self.port = port
-        self.ec2_instances = None
-        self.ec2_session = None
-        self.data = dict()
         self.vpc_sg = vpc_sg
         self.rds_db = rds_db
-        self.db_session = None
         self.rds_name = rds_name
         self.dry_run = dry_run
+
+        self.ec2_instances = None
+        self.ec2_session = None
+        self.db_session = None
+        self.iam_session = None
 
         self.Session = boto3.Session(
             region_name=self.region,
@@ -39,7 +68,10 @@ class AWSManager(object):
             )
 
     def _get_ec2_session(self):
-
+        """
+        Private method for creating an ec2 session. This interface will setup be used for collecting account an instance
+        data for backups.
+        """
         if not self.ec2_session:
             self.ec2_session = self.Session.resource('ec2',
                                                      region_name=self.region,
@@ -48,16 +80,10 @@ class AWSManager(object):
         else:
             logging.warning('EC2 Session already exists.  Using existing Session.')
 
-    def _validate_ec2_region(self):
-
-        ec2 = boto3.client('ec2')
-        regions = ec2.describe_regions()
-
-        if not any(k['RegionName'] for k in regions['Regions'] if self.region == k['RegionName']):
-            return False
-
     def _get_ec2_instances(self):
-
+        """
+        Private method for getting a list of instance ids and setting the ec2_instances attribute.
+        """
         if not self.ec2_session:
             self._get_ec2_session()
 
@@ -66,7 +92,10 @@ class AWSManager(object):
         self.ec2_instances = instlist
 
     def _create_tables(self):
-
+        """
+        Calls the create_tables method from the correct database manager.  If a database session has not be already
+        initiated it will first create the database session.
+        """
         if not self.db_session:
             logging.info('Creating DB session.')
             self.get_db_connection()
@@ -75,24 +104,36 @@ class AWSManager(object):
 
         self.db_session.create_tables()
 
-    def _terminate(self, instances):
+    def terminate(self, instances):
+        """
+        Terminates ec2 instances.
 
+        :param instances: The ec2 instances that will be terminated.
+        :type instances: list of strings
+        """
         pass
         # TODO try except
         # self.ec2_session.terminate_instances(DryRun=self.dry_run,
         #                                      InstanceIds=instances)
 
     def get_account_info(self):
-
+        """
+        Gets the account information for the User's account and sets object attributes with the necessary data. This
+        information will be used for the Mothball backup application. It creates attribute with iam session,
+        account_id, and user_id.
+        """
         self.iam_session = self.Session.resource('iam',
-                                                    region_name=self.region,
-                                                    aws_access_key_id=self.key,
-                                                    aws_secret_access_key=self.secret)
+                                                 region_name=self.region,
+                                                 aws_access_key_id=self.key,
+                                                 aws_secret_access_key=self.secret)
         self.account_id = self.iam_session.CurrentUser().arn.split(':')[4]
         self.user_id = self.iam_session.CurrentUser().arn.split(':')[5]
 
     def get_db_connection(self):
-
+        """
+        Creates a database connection depending on the location (RDS/NonRDS) and sets the db_session attribute on the
+        object for database access.
+        """
         if self.rds_db:
             DB = RDSManager(self.db_type, self.rds_name, self.dbname, self.username, self.password, self.Session, self.vpc_sg)
         else:
@@ -101,8 +142,15 @@ class AWSManager(object):
         self.db_session = DB.create_db_session()
         self.db_session.connect()
 
-    def get_info(self):
+    def backup_instances(self):
+        """
+        Main cadence for backing up instance data to a database. It collects all of the instance ids for a region first.
+        It then creates a manager for each configuration set that is being backed up. After creating the managers it
+        creates a record for each instance configuration set and records the instance id.
 
+        :return: The instances that configuration data was backed up.
+        :rtype: list of strings
+        """
         if not self.ec2_instances:
             self._get_ec2_instances()
 
@@ -122,9 +170,13 @@ class AWSManager(object):
             eipm.create_record(self.account_id, instance)
             mothballed_instances.append(instance)
 
-        self._terminate(mothballed_instances)
+        return mothballed_instances
 
     def __repr__(self):
+        """
+        Returns attribute data currently set for the AWSManager Object.
+        :return:
+        """
         return "<account_info='{0}, user_id='{1}'>".format(self.account_id, self.user_id)
 
 
