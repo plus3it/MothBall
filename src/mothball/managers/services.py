@@ -1,6 +1,7 @@
 import abc
 import json
 import logging
+import datetime
 
 from mothball.db.models.base import EBS, EIP, SecurityGroup, Instances
 
@@ -23,30 +24,46 @@ class EBSManager(AWSServiceManager):
     def __init__(self, ec2_session, db_session):
         super(EBSManager, self).__init__(ec2_session, db_session)
 
-    def create_record(self, account_id, instance_id):
+    def _volume_snapshot(self, volume_id):
+
+        logging.info('Snapshot of Volume: {0}'.format(volume_id))
+        # TODO Try Except
+        self.ec2_session.create_snapshot(VolumeId=volume_id,
+                                         Description='Snapshot before MothBall Deregister for {0}'.format(volume_id)
+                                         )
+
+    def create_record(self, account_id, instance_id, dry_run=True):
 
         devices = self.ec2_session.Instance(instance_id).block_device_mappings
 
         for dev in devices:
-            new_ebs = EBS()
-            new_ebs.AcountId = account_id
-            new_ebs.instanceId = instance_id
-            new_ebs.attachmentSet = dev['DeviceName']
+            if not self.db_session.session.query(EBS).filter_by(volumeId=dev['Ebs']['VolumeId']).all():
 
-            volume = self.ec2_session.Volume(new_ebs.volumeId)
-            new_ebs.volumeId = volume.volume_id
-            new_ebs.size = volume.size
-            new_ebs.volumeType = volume.volume_type
-            new_ebs.iops = volume.iops
-            new_ebs.availabilityZone = volume.availability_zone
-            new_ebs.tagSet = json.dumps(volume.tags)
-            new_ebs.createTime = volume.created_time
-            new_ebs.encrypted = volume.encrypted
-            new_ebs.kmsKeyId = volume.kms_key_id
-            new_ebs.snapshotId = volume.snapshot_id
-            new_ebs.status = volume.state
+                new_ebs = EBS()
+                new_ebs.AccountId = account_id
+                new_ebs.instanceId = instance_id
+                new_ebs.attachmentSet = dev['DeviceName']
 
-            self.db_session.update(new_ebs)
+                volume = self.ec2_session.Volume(dev['Ebs']['VolumeId'])
+                new_ebs.volumeId = volume.volume_id
+                new_ebs.size = volume.size
+                new_ebs.volumeType = volume.volume_type
+                new_ebs.iops = volume.iops
+                new_ebs.availabilityZone = volume.availability_zone
+                new_ebs.tagSet = volume.tags
+                if hasattr(new_ebs.tagSet, '__dict__'):
+                    new_ebs.tagSet = new_ebs.tagSet.__dict__
+                new_ebs.createTime = volume.create_time
+                new_ebs.encrypted = volume.encrypted
+                new_ebs.kmsKeyId = volume.kms_key_id
+                new_ebs.snapshotId = volume.snapshot_id
+                new_ebs.status = volume.state
+                self.db_session.update(new_ebs)
+
+                if not dry_run:
+                    self._volume_snapshot(volume.volume_id)
+            else:
+                logging.debug('VolumeId already exists!')
 
 
 class EIPManager(AWSServiceManager):
@@ -64,9 +81,11 @@ class EIPManager(AWSServiceManager):
             new_eip.instanceId = instance_id
 
             nid = self.ec2_session.NetworkInterface(interface['NetworkInterfaceId'])
-            new_eip.association = nid.association
-            new_eip.assocAttr = nid.association_attribute
+            # new_eip.association = nid.association
+            # new_eip.assocAttr = nid.association_attribute
             new_eip.attachment = nid.attachment
+            if new_eip.attachment and isinstance(new_eip.attachment, dict) and 'AttachTime' in new_eip.attachment:
+                new_eip.attachment['AttachTime'] = new_eip.attachment['AttachTime'].isoformat()
             new_eip.description = nid.description
             new_eip.groups = nid.groups
             new_eip.interfaceId = nid.id
@@ -85,6 +104,7 @@ class EIPManager(AWSServiceManager):
 
             self.db_session.update(new_eip)
 
+
 class SecurityGroupManager(AWSServiceManager):
 
     def __init__(self, ec2_session, db_session):
@@ -95,20 +115,23 @@ class SecurityGroupManager(AWSServiceManager):
         sgs = self.ec2_session.Instance(instance_id).security_groups
 
         for sg in sgs:
-            new_sg = SecurityGroup()
+            if not self.db_session.session.query(SecurityGroup).filter_by(sgId=sg['GroupId']).all():
+                new_sg = SecurityGroup()
 
-            secgroup = self.ec2_session.SecurityGroup(sg['GroupId'])
-            new_sg.sgId = sg.GroupId
-            new_sg.AccountId = account_id
-            new_sg.instanceId = instance_id
-            new_sg.description = secgroup.description
-            new_sg.name = secgroup.group_name
-            new_sg.ingressRules = secgroup.ip_permissions
-            new_sg.egressRules = secgroup.ip_permissions_egress
-            new_sg.vpcId = secgroup.vpc_id
-            new_sg.tagSet = secgroup.tags
+                secgroup = self.ec2_session.SecurityGroup(sg['GroupId'])
+                new_sg.sgId = sg['GroupId']
+                new_sg.AccountId = account_id
+                new_sg.instanceId = instance_id
+                new_sg.description = secgroup.description
+                new_sg.name = secgroup.group_name
+                new_sg.ingressRules = secgroup.ip_permissions
+                new_sg.egressRules = secgroup.ip_permissions_egress
+                new_sg.vpcId = secgroup.vpc_id
+                new_sg.tagSet = secgroup.tags
 
-            self.db_session.update(new_sg)
+                self.db_session.update(new_sg)
+            else:
+                logging.debug('Security group already exists.')
 
 
 class InstanceManager(AWSServiceManager):
@@ -122,6 +145,8 @@ class InstanceManager(AWSServiceManager):
 
         new_inst.AccountId = account_id
         new_inst.instanceId = instance_id
-        new_inst.AvailabilityZone = None
+
+        # TODO This needs to be corrected to the proper map.
+        new_inst.AvailabilityZone = ''
 
         self.db_session.update(new_inst)
