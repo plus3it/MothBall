@@ -22,22 +22,50 @@ Indices and tables
 
 .. automodule:: mothball
    :members:
+   :undoc-members:
+   :private-members:
+   :special-members:
+   :inherited-members:
 
 .. automodule:: mothball.managers
    :members:
+   :undoc-members:
+   :private-members:
+   :special-members:
+   :inherited-members:
 
 .. automodule:: mothball.managers.base
    :members:
+   :undoc-members:
+   :private-members:
+   :special-members:
+   :inherited-members:
 
 .. automodule:: mothball.managers.services
    :members:
+   :undoc-members:
+   :private-members:
+   :special-members:
+   :inherited-members:
 
 .. automodule:: mothball.db
    :members:
+   :undoc-members:
+   :private-members:
+   :special-members:
+   :inherited-members:
 
 .. automodule:: mothball.db.managers
    :members:
+   :undoc-members:
+   :private-members:
+   :special-members:
+   :inherited-members:
 
 .. automodule:: mothball.db.models
    :members:
+   :undoc-members:
+   :private-members:
+   :special-members:
+   :inherited-members:
 
