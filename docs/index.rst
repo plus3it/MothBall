@@ -22,3 +22,22 @@ Indices and tables
 
 .. automodule:: mothball
    :members:
+
+.. automodule:: mothball.managers
+   :members:
+
+.. automodule:: mothball.managers.base
+   :members:
+
+.. automodule:: mothball.managers.services
+   :members:
+
+.. automodule:: mothball.db
+   :members:
+
+.. automodule:: mothball.db.managers
+   :members:
+
+.. automodule:: mothball.db.models
+   :members:
+
