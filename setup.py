@@ -6,12 +6,14 @@ setup(
     packages = find_packages(where='src'),
     package_dir = {"": "src"},
     include_package_data = True,
+    scripts=['scripts/MbBackup.py'],
     #data_files=['static/mothball.config', 'scripts/mothball.py'],
     install_requires = [ 'sqlalchemy',
                          'boto3',
                          'pyyaml',
                          'PyMySQL',
                          'pymysql-sa',
-                         'urllib3'
+                         'urllib3',
+                         'recommonmark'
                          ]
 )
