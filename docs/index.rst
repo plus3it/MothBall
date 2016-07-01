@@ -59,7 +59,7 @@ Indices and tables
 
 .. automodule:: mothball.db.models.base
    :members:
-   :private-members:
-   :special-members: __init__, __repr__
+   :special-members: __repr__
 
-
+.. autoattribute:: mothball.db.models.base
+   :members:
