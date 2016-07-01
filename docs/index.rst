@@ -38,14 +38,14 @@ Indices and tables
    :members:
    :undoc-members:
    :private-members:
-   :special-members:
+   :special-members: __init__
    :inherited-members:
 
 .. automodule:: mothball.managers.services
    :members:
    :undoc-members:
    :private-members:
-   :special-members:
+   :special-members: __init__
    :inherited-members:
 
 .. automodule:: mothball.db
@@ -59,13 +59,13 @@ Indices and tables
    :members:
    :undoc-members:
    :private-members:
-   :special-members:
+   :special-members: __init__
    :inherited-members:
 
 .. automodule:: mothball.db.models
    :members:
    :undoc-members:
    :private-members:
-   :special-members:
+   :special-members: __init__, __repr__
    :inherited-members:
 
