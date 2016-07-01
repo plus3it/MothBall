@@ -6,7 +6,7 @@ setup(
     packages = find_packages(where='src'),
     package_dir = {"": "src"},
     include_package_data = True,
-    data_files=['static/mothball.config', 'scripts/mothball.py'],
+    #data_files=['static/mothball.config', 'scripts/mothball.py'],
     install_requires = [ 'sqlalchemy',
                          'boto3',
                          'pyyaml',
