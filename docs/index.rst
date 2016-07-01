@@ -20,5 +20,5 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
-.. automodule:: mothball.managers.base
-   :AWSManager:
+.. automodule:: mothball
+   :members:
