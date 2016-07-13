@@ -11,8 +11,9 @@ class AWSManager(object):
 
     """
 
-    def __init__(self, region, key, secret, username, password, dbname,
-                 host, port, db_type, dry_run=True, rds_db=True, rds_name=None, *vpc_sg):
+    def __init__(self, region, key, secret, control_region, control_key, control_secret,
+                 username, password, dbname, host, port, db_type, rds_db=True,
+                 rds_name=None, *vpc_sg):
         """
         :param region: The region to be backedup.
         :type region: string
@@ -32,8 +33,6 @@ class AWSManager(object):
         :type port: basestring
         :param db_type: Currently only supports MySQL and PostgreSQL
         :type db_type: basestring
-        :param dry_run: If False EBS volumes should be snapshotted and ec2 instances terminated.
-        :type dry_run: bool
         :param rds_db: If RDS should be used for housing the configuration data.
         :type rds_db: bool
         :param rds_name: The name of the RDS instance being created or used.
@@ -45,6 +44,9 @@ class AWSManager(object):
         self.region = region
         self.key = key
         self.secret = secret
+        self.control_region = control_region
+        self.control_key = control_key
+        self.control_secret = control_secret
         self.username = username
         self.password = password
         self.dbname = dbname
@@ -54,7 +56,6 @@ class AWSManager(object):
         self.vpc_sg = vpc_sg
         self.rds_db = rds_db
         self.rds_name = rds_name
-        self.dry_run = dry_run
 
         self.ec2_instances = None
         self.ec2_session = None
@@ -62,18 +63,26 @@ class AWSManager(object):
         self.iam_session = None
         self.account_id = None
         self.user_id = None
+        self.Session = None
 
-        self.Session = boto3.Session(
+    def _get_session(self, region, key, secret):
+
+        Session = boto3.Session(
             region_name=self.region,
             aws_access_key_id=self.key,
             aws_secret_access_key=self.secret
             )
+
+        return Session
 
     def _get_ec2_session(self):
         """
         Private method for creating an ec2 session. This interface will setup be used for collecting account an instance
         data for backups.
         """
+        if not self.Session:
+            self.Session = self._get_session(self.region, self.key, self.secret)
+
         if not self.ec2_session:
             self.ec2_session = self.Session.resource('ec2',
                                                      region_name=self.region,
@@ -113,10 +122,18 @@ class AWSManager(object):
         :param instances: The ec2 instances that will be terminated.
         :type instances: list of strings
         """
-        pass
-        # TODO try except
-        # self.ec2_session.terminate_instances(DryRun=self.dry_run,
-        #                                      InstanceIds=instances)
+        ec2_client = self.Session.client('ec2',
+                                         region_name=self.region,
+                                         aws_access_key_id=self.key,
+                                         aws_secret_access_key=self.secret)
+
+        for instance in instances:
+            print('Terminating instance {0}'.format(instance))
+
+        ec2_client.terminate_instances(DryRun=False,
+                                           InstanceIds=instances)
+            # TODO this returns JSON data of the terminated instances, it should be pushed into the DB
+
 
     def get_account_info(self):
         """
@@ -124,6 +141,9 @@ class AWSManager(object):
         information will be used for the Mothball backup application. It creates attribute with iam session,
         account_id, and user_id.
         """
+        if not self.Session:
+            self.Session = self._get_session(self.region, self.key, self.secret)
+
         self.iam_session = self.Session.resource('iam',
                                                  region_name=self.region,
                                                  aws_access_key_id=self.key,
@@ -137,13 +157,20 @@ class AWSManager(object):
         object for database access.
         """
         if self.rds_db:
-            db = RDSManager(self.db_type, self.rds_name, self.dbname, self.username, self.password, self.Session,
+            self.home_session = self._get_session(self.control_region, self.control_key, self.control_secret)
+            db = RDSManager(self.db_type, self.rds_name, self.dbname, self.username, self.password, self.home_session,
                             self.vpc_sg)
         else:
             db = DBManager(self.db_type, self.dbname, self.username, self.password, self.host, self.port)
 
         self.db_session = db.create_db_session()
         self.db_session.connect()
+
+    def get_instances(self):
+        if not self.ec2_instances:
+            self._get_ec2_instances()
+
+        return self.ec2_instances
 
     def backup_instances(self):
         """
@@ -165,15 +192,21 @@ class AWSManager(object):
         # TODO check to see if tables exist?
         self._create_tables()
 
-        mothballed_instances = list()
         for instance in self.ec2_instances:
             im.create_record(self.account_id, instance)
             sgm.create_record(self.account_id, instance)
-            ebsm.create_record(self.account_id, instance, dry_run=self.dry_run)
+            ebsm.create_record(self.account_id, instance)
             eipm.create_record(self.account_id, instance)
-            mothballed_instances.append(instance)
 
-        return mothballed_instances
+    def create_snapshots(self):
+
+        if not self.ec2_instances:
+            self._get_ec2_instances()
+
+        ebsm = EBSManager(self.ec2_session)
+
+        for instance in self.ec2_instances:
+            ebsm.snapshot_volumes(instance)
 
     def __repr__(self):
         """

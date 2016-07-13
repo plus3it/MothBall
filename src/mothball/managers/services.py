@@ -39,7 +39,7 @@ class EBSManager(AWSConfigurationManager):
     Class for backing up the Elastic Book Store configuration information for a particular instance.
     """
 
-    def __init__(self, ec2_session, db_session):
+    def __init__(self, ec2_session, db_session=None):
         super(EBSManager, self).__init__(ec2_session, db_session)
 
     def _volume_snapshot(self, volume_id):
@@ -56,7 +56,18 @@ class EBSManager(AWSConfigurationManager):
                                          Description='Snapshot before MothBall Deregister for {0}'.format(volume_id)
                                          )
 
-    def create_record(self, account_id, instance_id, dry_run=True):
+    def snapshot_volumes(self, instance_id):
+
+        devices = self.ec2_session.Instance(instance_id).block_device_mappings
+
+        for dev in devices:
+            print('Snapshot being created for {0}'.format(self.ec2_session.Volume(dev['Ebs']['VolumeId']).volume_id))
+            self._volume_snapshot(self.ec2_session.Volume(dev['Ebs']['VolumeId']).volume_id)
+
+    def create_record(self, account_id, instance_id):
+
+        if not self.db_session:
+            print('DBSession was not passed properly for EBSManager to create_record')
 
         devices = self.ec2_session.Instance(instance_id).block_device_mappings
 
@@ -83,9 +94,6 @@ class EBSManager(AWSConfigurationManager):
                 new_ebs.snapshotId = volume.snapshot_id
                 new_ebs.status = volume.state
                 self.db_session.update(new_ebs)
-
-                if not dry_run:
-                    self._volume_snapshot(volume.volume_id)
             else:
                 logging.debug('VolumeId {0} has already been backed up.'.format(dev['Ebs']['VolumeId']))
 
