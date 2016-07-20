@@ -40,7 +40,7 @@ class EBS(Base):
     AccountId = Column(String(12), nullable=False)
     instanceId = Column(String(19), nullable=False)
     attachmentSet = Column(String(10), nullable=False)
-    availabilityZone = Column(String(12), nullable=False)
+    availabilityZone = Column(String(20), nullable=False)
     createTime = Column(DateTime, nullable=True)
     encrypted = Column(Boolean, default=False, nullable=False)
     iops = Column(Integer)

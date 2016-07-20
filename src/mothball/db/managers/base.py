@@ -159,7 +159,9 @@ class SQLConnect(object):
     Interface for database connections.
     """
 
-    def __init__(self, address, port, dbname='Backup', username='bull', password='bullbythehorns', db_type='managers'):
+    def __init__(self, address, port, dbname='AWSBackup',
+                 username='mothball', password='mothballP4ssw0rd', db_type='managers'):
+
         self.dbname = dbname
         self.username = username
         self.password = password
